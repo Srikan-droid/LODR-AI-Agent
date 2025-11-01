@@ -27,6 +27,8 @@ const regulationsData = [
             text: 'The listed entity shall disclose all credit ratings obtained by it for all its outstanding instruments, whether listed or unlisted, to the stock exchange(s) where its securities are listed.',
             timeline: 'Ongoing',
             format: 'Disclosure to stock exchanges',
+            validationCheck: 'Disclosure must exist for all outstanding instruments',
+            severity: 'High',
             source: 'https://www.sebi.gov.in/legal/regulations/mar-2025/securities-and-exchange-board-of-india-listing-obligations-and-disclosure-requirements-regulations-2015-last-amended-on-march-28-2025-_93409.html'
           },
           {
@@ -36,6 +38,8 @@ const regulationsData = [
             text: 'Any revision in credit rating shall be considered as material information and shall be disclosed to the stock exchange(s) within twenty-four hours from the occurrence of the event.',
             timeline: 'Within 24 hours',
             format: 'Electronic filing with rating rationale',
+            validationCheck: 'announcement_date - rating_date <= 24h',
+            severity: 'High',
             source: 'https://www.sebi.gov.in/legal/regulations/mar-2025/securities-and-exchange-board-of-india-listing-obligations-and-disclosure-requirements-regulations-2015-last-amended-on-march-28-2025-_93409.html'
           },
           {
@@ -45,6 +49,8 @@ const regulationsData = [
             text: 'The listed entity shall disseminate all credit ratings obtained by it for all its outstanding instruments, whether listed or unlisted, on its website.',
             timeline: 'Ongoing',
             format: 'Dedicated section on website',
+            validationCheck: 'Disclosure available in website credit rating section',
+            severity: 'Medium',
             source: 'https://www.sebi.gov.in/legal/regulations/mar-2025/securities-and-exchange-board-of-india-listing-obligations-and-disclosure-requirements-regulations-2015-last-amended-on-march-28-2025-_93409.html'
           },
           {
@@ -54,6 +60,8 @@ const regulationsData = [
             text: 'The listed entity shall submit a certificate from the credit rating agency along with the financial results, confirming the rating.',
             timeline: 'With financial results',
             format: 'Certificate from CRA',
+            validationCheck: 'Submission of CRA certificate along with financial results',
+            severity: 'Medium',
             source: 'https://www.sebi.gov.in/legal/regulations/mar-2025/securities-and-exchange-board-of-india-listing-obligations-and-disclosure-requirements-regulations-2015-last-amended-on-march-28-2025-_93409.html'
           },
           {
@@ -63,6 +71,8 @@ const regulationsData = [
             text: 'Must include: Name of issuer, Instrument rated, Rating assigned, Rationale, Link to full rating report.',
             timeline: 'Within 1 working day',
             format: 'Press release by CRA',
+            validationCheck: '1. Must include: Name of issuer, Instrument rated, Rating assigned, Rationale, Link to full rating report\n2. press_release_date - rating_action_date <= 1d',
+            severity: 'High',
             source: 'https://www.sebi.gov.in/legal/circulars/jul-2024/measures-for-ease-of-doing-business-for-credit-rating-agencies-cras-timelines-and-disclosures-_84599.html'
           },
           {
@@ -72,6 +82,8 @@ const regulationsData = [
             text: 'Through electronic filing system of the exchange; must include rating rationale and instrument details.',
             timeline: 'Within 24 hours',
             format: 'Electronic filing',
+            validationCheck: '1. Through electronic filing system of the exchange; must include rating rationale and instrument details\n2. press_release_date - rating_action_date <= 1d',
+            severity: 'High',
             source: 'https://www.sebi.gov.in/legal/circulars/jul-2024/measures-for-ease-of-doing-business-for-credit-rating-agencies-cras-timelines-and-disclosures-_84599.html'
           },
           {
@@ -81,6 +93,8 @@ const regulationsData = [
             text: 'Must be accessible under a dedicated section for "Rating Actions"; archived for minimum 5 years.',
             timeline: 'Simultaneous with press release',
             format: 'CRA website section',
+            validationCheck: '1. Must be accessible under a dedicated section for "Rating Actions"; archived for minimum 5 years\n2. press_release_date - rating_action_date <= 1d',
+            severity: 'High',
             source: 'https://www.sebi.gov.in/legal/circulars/jul-2024/measures-for-ease-of-doing-business-for-credit-rating-agencies-cras-timelines-and-disclosures-_84599.html'
           },
           {
@@ -90,6 +104,8 @@ const regulationsData = [
             text: 'Summary of all rating actions taken during the month, in prescribed format.',
             timeline: 'Monthly',
             format: 'Prescribed format submission',
+            validationCheck: '1. Summary of all rating actions taken during the month, in prescribed format.\n2. press_release_date - rating_action_date <= 1d',
+            severity: 'High',
             source: 'https://www.sebi.gov.in/legal/circulars/jul-2024/measures-for-ease-of-doing-business-for-credit-rating-agencies-cras-timelines-and-disclosures-_84599.html'
           }
         ]
@@ -135,6 +151,9 @@ function MainContent() {
   const [showDirectory, setShowDirectory] = useState(!!regulationId || searchParams.get('view') === 'directory');
   const [selectedRegulation, setSelectedRegulation] = useState(null);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalTitle, setModalTitle] = useState('');
+  const [modalText, setModalText] = useState('');
   
   // Load regulation and event from URL params
   useEffect(() => {
@@ -237,6 +256,40 @@ function MainContent() {
     setSelectedRegulation(regulation);
     setSelectedEvent(event);
     setShowDirectory(false);
+  };
+
+  const handleUpload = (reg) => {
+    // Create a file input element
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.pdf,.doc,.docx,.xls,.xlsx';
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        console.log('Uploading file for regulation:', reg.requirement, file.name);
+        // Add your upload logic here
+        alert(`File "${file.name}" selected for upload for ${reg.requirement}`);
+      }
+    };
+    input.click();
+  };
+
+  const handleGenerate = (reg) => {
+    console.log('Generating document for regulation:', reg.requirement);
+    // Add your generate logic here
+    alert(`Generating document for ${reg.requirement}`);
+  };
+
+  const openTextModal = (title, fullText) => {
+    setModalTitle(title);
+    setModalText(fullText);
+    setIsModalOpen(true);
+  };
+
+  const closeTextModal = () => {
+    setIsModalOpen(false);
+    setModalTitle('');
+    setModalText('');
   };
 
   return (
@@ -457,8 +510,8 @@ function MainContent() {
                             <th>Regulation / Clause</th>
                             <th>Requirement</th>
                             <th>Exact Regulatory Text</th>
-                            <th>Timeline</th>
                             <th>Format / Details</th>
+                            <th>Validation Check</th>
                             <th>Source</th>
                           </tr>
                         </thead>
@@ -467,10 +520,47 @@ function MainContent() {
                             <tr key={reg.id}>
                               <td>{reg.regulation}</td>
                               <td>{reg.requirement}</td>
-                              <td>{reg.text}</td>
-                              <td>{reg.timeline}</td>
+                              <td className="exact-text-cell">
+                                <div className="preview-text">
+                                  {reg.text || ''}
+                                </div>
+                                {reg.text && (
+                                  <button
+                                    type="button"
+                                    className="read-more-link"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      openTextModal(`${reg.regulation} — ${reg.requirement}`, reg.text);
+                                    }}
+                                  >
+                                    Read more
+                                  </button>
+                                )}
+                              </td>
                               <td>{reg.format}</td>
-                              <td>
+                              <td className="validation-check-cell">
+                                {reg.validationCheck ? (
+                                  <div className="validation-check-content">
+                                    {reg.severity && (
+                                      <div className={`severity-indicator severity-${reg.severity.toLowerCase()}`}>
+                                        <span className="severity-dot"></span>
+                                        <span className="severity-text">{reg.severity}</span>
+                                      </div>
+                                    )}
+                                    <ol className="validation-ol">
+                                      {reg.validationCheck.split('\n').map((line, idx) => {
+                                        const cleaned = line.replace(/^\s*\d+\.\s*/, '');
+                                        return (
+                                          <li key={idx} className="validation-line">{cleaned}</li>
+                                        );
+                                      })}
+                                    </ol>
+                                  </div>
+                                ) : (
+                                  <span className="no-validation">N/A</span>
+                                )}
+                              </td>
+                              <td className="source-cell">
                                 <a href={reg.source} target="_blank" rel="noopener noreferrer" className="source-link">
                                   View Source
                                 </a>
@@ -480,6 +570,22 @@ function MainContent() {
                         </tbody>
                       </table>
                     </div>
+                    {isModalOpen && (
+                      <div className="modal-overlay" onClick={closeTextModal}>
+                        <div className="modal" onClick={(e) => e.stopPropagation()}>
+                          <div className="modal-header">
+                            <h4 className="modal-title">{modalTitle}</h4>
+                            <button className="modal-close" onClick={closeTextModal} aria-label="Close">×</button>
+                          </div>
+                          <div className="modal-body">
+                            <p>{modalText}</p>
+                          </div>
+                          <div className="modal-footer">
+                            <button className="modal-close-button" onClick={closeTextModal}>Close</button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
                 
