@@ -509,7 +509,7 @@ function MainContent() {
                           <tr>
                             <th>Regulation / Clause</th>
                             <th>Requirement</th>
-                            <th>Exact Regulatory Text</th>
+                            <th>Regulatory Text</th>
                             <th>Format / Details</th>
                             <th>Validation Check</th>
                             <th>Source</th>
