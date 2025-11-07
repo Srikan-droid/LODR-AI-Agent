@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import './App.css';
 
@@ -22,91 +22,179 @@ const regulationsData = [
         regulations: [
           {
             id: 1,
-            regulation: 'Regulation 55',
-            requirement: 'Disclosure of Credit Ratings',
-            text: 'The listed entity shall disclose all credit ratings obtained by it for all its outstanding instruments, whether listed or unlisted, to the stock exchange(s) where its securities are listed.',
-            timeline: 'Ongoing',
-            format: 'Disclosure to stock exchanges',
-            validationCheck: 'Disclosure must exist for all outstanding instruments',
-            severity: 'High',
-            source: 'https://www.sebi.gov.in/legal/regulations/mar-2025/securities-and-exchange-board-of-india-listing-obligations-and-disclosure-requirements-regulations-2015-last-amended-on-march-28-2025-_93409.html'
+            typeOfEntity: 'Listed entity (wherever applicable)',
+            regulation: 'Regulation 8',
+            requirement: 'General Obligation / Cooperation',
+            text: 'The listed entity shall co-operate with and submit correct and adequate information to intermediaries registered with the Board, such as credit rating agencies, within specified timelines and procedures.',
+            format: 'N/A',
+            validationCheck: '',
+            penalty: '',
+            source: 'LODR.pdf'
           },
           {
             id: 2,
-            regulation: 'Regulation 30(6) & Schedule III Part A',
-            requirement: 'Disclosure of Revision In Credit Rating',
-            text: 'Any revision in credit rating shall be considered as material information and shall be disclosed to the stock exchange(s) within twenty-four hours from the occurrence of the event.',
-            timeline: 'Within 24 hours',
-            format: 'Electronic filing with rating rationale',
-            validationCheck: 'announcement_date - rating_date <= 24h',
-            severity: 'High',
-            source: 'https://www.sebi.gov.in/legal/regulations/mar-2025/securities-and-exchange-board-of-india-listing-obligations-and-disclosure-requirements-regulations-2015-last-amended-on-march-28-2025-_93409.html'
+            typeOfEntity: 'Listed entity with listed specified securities',
+            regulation: 'Regulation 30 read with Schedule III, Part A, Para A, Clause 3',
+            requirement: 'Event-based disclosure (Deemed Material)',
+            text: 'Disclosure of New Rating(s) or Revision in Rating(s) assigned by a credit rating agency to any debt instrument, fixed deposit programme, or scheme/proposal involving fund mobilization (in India or abroad). Downward revision reasons must be intimated.',
+            format: 'Disclosure to stock exchanges',
+            validationCheck: 'announcement_date - rating_date <= 24H',
+            penalty: '',
+            source: 'LODR.pdf, Master Circular - Very Imp_Reg 30_LODR_13July2023.pdf, Very Imp_Reg 30_LODR_13July2023.pdf'
           },
           {
             id: 3,
-            regulation: 'Regulation 62(1)(h)',
-            requirement: 'Website Disclosure',
-            text: 'The listed entity shall disseminate all credit ratings obtained by it for all its outstanding instruments, whether listed or unlisted, on its website.',
-            timeline: 'Ongoing',
-            format: 'Dedicated section on website',
-            validationCheck: 'Disclosure available in website credit rating section',
-            severity: 'Medium',
-            source: 'https://www.sebi.gov.in/legal/regulations/mar-2025/securities-and-exchange-board-of-india-listing-obligations-and-disclosure-requirements-regulations-2015-last-amended-on-march-28-2025-_93409.html'
+            typeOfEntity: 'Listed entity with listed specified securities',
+            regulation: 'Regulation 46(2)(r)',
+            requirement: 'Website disclosure',
+            text: 'Disclose all credit ratings obtained by the entity for all its outstanding instruments on its functional website.',
+            format: 'Disclosed on the entity website',
+            validationCheck: 'announcement_date - website_date <= 24H',
+            penalty: 'Regulation 46 - Non-compliance results in Advisory/warning letter per instance of non-compliance per item; or ₹ 10,000 per instance for every additional advisory/warning letter exceeding four in a financial year.',
+            source: 'LODR.pdf, SEBI_Non-compliance with certain provisions of the SEBI (Listing Obligations and Disclosure Requirements) Regulations, 2015 and the Standard Operating Procedure for suspension and revocation of trading of specified securities.pdf'
           },
           {
             id: 4,
-            regulation: 'Regulation 52(5)',
-            requirement: 'Submission of Credit Rating Certificate',
-            text: 'The listed entity shall submit a certificate from the credit rating agency along with the financial results, confirming the rating.',
-            timeline: 'With financial results',
-            format: 'Certificate from CRA',
-            validationCheck: 'Submission of CRA certificate along with financial results',
-            severity: 'Medium',
-            source: 'https://www.sebi.gov.in/legal/regulations/mar-2025/securities-and-exchange-board-of-india-listing-obligations-and-disclosure-requirements-regulations-2015-last-amended-on-march-28-2025-_93409.html'
+            typeOfEntity: 'Listed entity which has listed non-convertible securities',
+            regulation: 'Regulation 55 (Chapter V)',
+            requirement: 'Review requirement',
+            text: 'Each rating obtained by the listed entity with respect to non-convertible securities shall be reviewed by a credit rating agency registered by the Board.',
+            format: 'N/A',
+            validationCheck: 'announcement_date present in last 12 months',
+            penalty: '',
+            source: 'LODR.pdf'
           },
           {
             id: 5,
-            regulation: 'SEBI Circular Jul 4, 2024',
-            requirement: 'Press Release for Rating Action',
-            text: 'Must include: Name of issuer, Instrument rated, Rating assigned, Rationale, Link to full rating report.',
-            timeline: 'Within 1 working day',
-            format: 'Press release by CRA',
-            validationCheck: '1. Must include: Name of issuer, Instrument rated, Rating assigned, Rationale, Link to full rating report\n2. press_release_date - rating_action_date <= 1d',
-            severity: 'High',
-            source: 'https://www.sebi.gov.in/legal/circulars/jul-2024/measures-for-ease-of-doing-business-for-credit-rating-agencies-cras-timelines-and-disclosures-_84599.html'
+            typeOfEntity: 'Listed entity which has listed non-convertible securities',
+            regulation: 'Regulation 56(1)(c)(i) (Chapter V)',
+            requirement: 'Intimation to Debenture Trustees',
+            text: 'The listed entity shall forward intimations regarding any revision in the rating to the debenture trustee.',
+            format: 'N/A',
+            validationCheck: '',
+            penalty: '',
+            source: 'LODR.pdf'
           },
           {
             id: 6,
-            regulation: 'SEBI Circular Jul 4, 2024',
-            requirement: 'Intimation to Stock Exchange',
-            text: 'Through electronic filing system of the exchange; must include rating rationale and instrument details.',
-            timeline: 'Within 24 hours',
-            format: 'Electronic filing',
-            validationCheck: '1. Through electronic filing system of the exchange; must include rating rationale and instrument details\n2. press_release_date - rating_action_date <= 1d',
-            severity: 'High',
-            source: 'https://www.sebi.gov.in/legal/circulars/jul-2024/measures-for-ease-of-doing-business-for-credit-rating-agencies-cras-timelines-and-disclosures-_84599.html'
+            typeOfEntity: 'Listed entity which has listed non-convertible securities',
+            regulation: 'Regulation 62(1)(i) (Chapter V)',
+            requirement: 'Website disclosure',
+            text: 'Maintain a functional website containing all credit ratings obtained by the entity for all its listed non-convertible securities.',
+            format: 'Disclosed on the entity website',
+            validationCheck: 'announcement_date - website_date <= 24H',
+            penalty: '',
+            source: 'LODR.pdf'
           },
           {
             id: 7,
-            regulation: 'SEBI Circular Jul 4, 2024',
-            requirement: 'Website Disclosure by CRA',
-            text: 'Must be accessible under a dedicated section for "Rating Actions"; archived for minimum 5 years.',
-            timeline: 'Simultaneous with press release',
-            format: 'CRA website section',
-            validationCheck: '1. Must be accessible under a dedicated section for "Rating Actions"; archived for minimum 5 years\n2. press_release_date - rating_action_date <= 1d',
-            severity: 'High',
-            source: 'https://www.sebi.gov.in/legal/circulars/jul-2024/measures-for-ease-of-doing-business-for-credit-rating-agencies-cras-timelines-and-disclosures-_84599.html'
+            typeOfEntity: 'Special Purpose Distinct Entity (issuer of securitised debt instruments) and its Trustees',
+            regulation: 'Regulation 84(1) (Chapter VIII)',
+            requirement: 'Review requirement',
+            text: 'Every rating obtained with respect to securitised debt instruments shall be periodically reviewed by a credit rating agency registered by the Board.',
+            format: 'N/A',
+            validationCheck: 'announcement_date present in last 12 months',
+            penalty: '',
+            source: 'LODR.pdf'
           },
           {
             id: 8,
-            regulation: 'SEBI Circular Jul 4, 2024',
-            requirement: 'Submission to SEBI',
-            text: 'Summary of all rating actions taken during the month, in prescribed format.',
-            timeline: 'Monthly',
-            format: 'Prescribed format submission',
-            validationCheck: '1. Summary of all rating actions taken during the month, in prescribed format.\n2. press_release_date - rating_action_date <= 1d',
-            severity: 'High',
-            source: 'https://www.sebi.gov.in/legal/circulars/jul-2024/measures-for-ease-of-doing-business-for-credit-rating-agencies-cras-timelines-and-disclosures-_84599.html'
+            typeOfEntity: 'Recognised Stock Exchange(s)',
+            regulation: 'Regulation 84(2) (Chapter VIII)',
+            requirement: 'Dissemination',
+            text: 'Any revision in rating(s) shall be disseminated by the stock exchange(s).',
+            format: 'Disclosure by stock exchanges',
+            validationCheck: '',
+            penalty: '',
+            source: 'LODR.pdf'
+          },
+          {
+            id: 9,
+            typeOfEntity: 'Special Purpose Distinct Entity (issuer of securitised debt instruments) and its Trustees/Servicer',
+            regulation: 'Regulation 85(2) (Chapter VIII)',
+            requirement: 'Information to Investors',
+            text: 'Provide information regarding revision in rating as a result of credit rating done periodically in terms of regulation 84 to its investors.',
+            format: 'Disclosure to investors in electronic form/fax if consented',
+            validationCheck: '',
+            penalty: '',
+            source: 'LODR.pdf'
+          },
+          {
+            id: 10,
+            typeOfEntity: 'Special Purpose Distinct Entity (issuer of securitised debt instruments) and its Trustees',
+            regulation: 'Schedule III, Part D, Para A(7) (Chapter VIII)',
+            requirement: 'Disclosure of material information',
+            text: 'Disclosure of revision in rating as a result of credit rating done periodically.',
+            format: 'Disclosure to stock exchanges',
+            validationCheck: 'announcement_date - rating_date <= 24H',
+            penalty: '',
+            source: 'LODR.pdf'
+          },
+          {
+            id: 11,
+            typeOfEntity: 'Issuer of security receipts',
+            regulation: 'Regulation 87C(2) (Chapter VIII A)',
+            requirement: 'Compliance with RBI requirements / NAV Disclosure',
+            text: 'Comply with extant RBI requirement of obtaining credit rating of security receipts and declaration of the net asset value thereafter.',
+            format: 'In quarters where both external valuation and credit rating are required, issuer shall disclose lower of the two calculated Net Asset Value',
+            validationCheck: '',
+            penalty: '',
+            source: 'LODR.pdf'
+          },
+          {
+            id: 12,
+            typeOfEntity: 'Issuer of security receipts',
+            regulation: 'Schedule III, Part E, A(5) (Chapter VIII A)',
+            requirement: 'Disclosure of material event (without materiality test)',
+            text: 'Disclosure of periodic rating obtained from credit rating agency or any revision in the rating or any expected revision in rating.',
+            format: 'Disclosure to stock exchanges',
+            validationCheck: 'announcement_date - rating_date <= 24H',
+            penalty: '',
+            source: 'LODR.pdf'
+          },
+          {
+            id: 13,
+            typeOfEntity: 'Issuer of security receipts',
+            regulation: 'Schedule III, Part E, A(7) (Chapter VIII A)',
+            requirement: 'Disclosure of material event (without materiality test)',
+            text: 'Disclosure of any proposal to change or change of credit rating agency or Valuer.',
+            format: 'Disclosure to stock exchanges',
+            validationCheck: 'announcement_date - rating_date <= 24H',
+            penalty: '',
+            source: 'LODR.pdf'
+          },
+          {
+            id: 14,
+            typeOfEntity: 'Asset Management Company (Managing Mutual Fund Scheme)',
+            regulation: 'Regulation 90(2)(b) (Chapter IX)',
+            requirement: 'Intimation regarding rating',
+            text: 'Intimate the recognised stock exchange(s) of the rating of the scheme whose units are listed and any changes in the rating thereof (wherever applicable).',
+            format: 'Disclosure to stock exchanges',
+            validationCheck: 'announcement_date - rating_date <= 24H',
+            penalty: '',
+            source: 'LODR.pdf'
+          },
+          {
+            id: 15,
+            typeOfEntity: 'Listed entity which has listed non-convertible securities',
+            regulation: 'Schedule III, Part B, Para A(13) (Chapter V)',
+            requirement: 'Disclosure of material information',
+            text: 'Disclosure of any revision in the rating.',
+            format: 'Disclosure to stock exchanges',
+            validationCheck: 'announcement_date - rating_date <= 24H',
+            penalty: '',
+            source: 'LODR.pdf'
+          },
+          {
+            id: 16,
+            typeOfEntity: 'Listed entity with listed specified securities',
+            regulation: 'Schedule V, Part C, Clause 9(q)',
+            requirement: 'Annual Report Disclosure',
+            text: 'Disclosure of list of all credit ratings obtained by the entity along with any revisions thereto during the relevant financial year, for all debt instruments, fixed deposit programmes, or schemes involving mobilization of funds (in India or abroad).',
+            format: 'Disclosure in Annual report',
+            validationCheck: 'Is annual_report = yes, Within annual_report, is Corp_gov_rep = yes, Within Corp_gov_rep, is Credit_rating = Yes',
+            penalty: 'Regulation 27(2) - Non submission of the Corporate governance compliance report within the period provided under this regulation: Rs 2000 per day',
+            source: 'LODR.pdf'
           }
         ]
       },
@@ -141,6 +229,74 @@ const regulationsData = [
     ]
   }
 ];
+
+// Component to detect if text is truncated and show "Read more" only when needed
+function TextCell({ text, regulation, requirement, onReadMore }) {
+  const textRef = useRef(null);
+  const containerRef = useRef(null);
+  const [isTruncated, setIsTruncated] = useState(false);
+
+  useEffect(() => {
+    const checkTruncation = () => {
+      if (textRef.current) {
+        const textElement = textRef.current;
+        
+        // Store original inline style
+        const originalStyle = textElement.style.cssText;
+        
+        // Temporarily remove max-height to measure full content height
+        textElement.style.maxHeight = 'none';
+        const fullHeight = textElement.scrollHeight;
+        
+        // Restore original style
+        textElement.style.cssText = originalStyle;
+        
+        // Get visible height with max-height constraint applied
+        const visibleHeight = textElement.clientHeight;
+        
+        // Check if text is actually truncated (with small tolerance for rounding)
+        const isTextTruncated = fullHeight > visibleHeight + 2;
+        setIsTruncated(isTextTruncated);
+      }
+    };
+
+    // Use requestAnimationFrame to ensure DOM is fully rendered
+    const rafId = requestAnimationFrame(() => {
+      checkTruncation();
+      // Also check after a short delay to account for any layout changes
+      setTimeout(checkTruncation, 100);
+    });
+    
+    // Recheck on window resize
+    window.addEventListener('resize', checkTruncation);
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', checkTruncation);
+    };
+  }, [text]);
+
+  if (!text) return <span>N/A</span>;
+
+  return (
+    <div ref={containerRef} className="exact-text-cell">
+      <div ref={textRef} className="preview-text">
+        {text}
+      </div>
+      {isTruncated && (
+        <button
+          type="button"
+          className="read-more-link"
+          onClick={(e) => {
+            e.stopPropagation();
+            onReadMore(`${regulation} — ${requirement}`, text);
+          }}
+        >
+          Read more
+        </button>
+      )}
+    </div>
+  );
+}
 
 function MainContent() {
   const navigate = useNavigate();
@@ -296,7 +452,7 @@ function MainContent() {
     <div className="App">
       <header className="App-header">
         <div className="header-ribbon">
-          <h1 className="main-title">Regulations Knowledge Base</h1>
+          <h1 className="main-title">Regulatory Knowledge Base</h1>
           <p className="subtitle">Your comprehensive guide to regulations</p>
         </div>
         <div className="container">
@@ -508,34 +664,28 @@ function MainContent() {
                         <thead>
                           <tr>
                             <th>Regulation / Clause</th>
+                            <th>Type of entity</th>
                             <th>Requirement</th>
-                            <th>Regulatory Text</th>
+                            <th>Summary Regulatory Text</th>
                             <th>Format / Details</th>
                             <th>Validation Check</th>
+                            <th>Penalty/Action</th>
                             <th>Source</th>
                           </tr>
                         </thead>
                         <tbody>
                           {selectedEvent.regulations.map((reg) => (
                             <tr key={reg.id}>
-                              <td>{reg.regulation}</td>
+                              <td>{reg.regulation || 'N/A'}</td>
+                              <td>{reg.typeOfEntity || 'N/A'}</td>
                               <td>{reg.requirement}</td>
-                              <td className="exact-text-cell">
-                                <div className="preview-text">
-                                  {reg.text || ''}
-                                </div>
-                                {reg.text && (
-                                  <button
-                                    type="button"
-                                    className="read-more-link"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      openTextModal(`${reg.regulation} — ${reg.requirement}`, reg.text);
-                                    }}
-                                  >
-                                    Read more
-                                  </button>
-                                )}
+                              <td>
+                                <TextCell
+                                  text={reg.text}
+                                  regulation={reg.regulation}
+                                  requirement={reg.requirement}
+                                  onReadMore={openTextModal}
+                                />
                               </td>
                               <td>{reg.format}</td>
                               <td className="validation-check-cell">
@@ -560,10 +710,28 @@ function MainContent() {
                                   <span className="no-validation">N/A</span>
                                 )}
                               </td>
+                              <td className="penalty-cell">
+                                {reg.penalty ? (
+                                  <div className="penalty-content">{reg.penalty}</div>
+                                ) : (
+                                  <span className="no-penalty">N/A</span>
+                                )}
+                              </td>
                               <td className="source-cell">
-                                <a href={reg.source} target="_blank" rel="noopener noreferrer" className="source-link">
-                                  View Source
-                                </a>
+                                {reg.source ? (
+                                  <a 
+                                    href={reg.source.startsWith('http') ? reg.source : '#'} 
+                                    target={reg.source.startsWith('http') ? '_blank' : undefined}
+                                    rel={reg.source.startsWith('http') ? 'noopener noreferrer' : undefined}
+                                    className="source-link"
+                                    onClick={!reg.source.startsWith('http') ? (e) => { e.preventDefault(); } : undefined}
+                                    title={reg.source}
+                                  >
+                                    View Source
+                                  </a>
+                                ) : (
+                                  <span className="source-text">N/A</span>
+                                )}
                               </td>
                             </tr>
                           ))}

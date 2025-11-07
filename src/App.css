@@ -564,28 +564,56 @@
 
 /* Regulations Table */
 .regulations-table {
-  overflow-x: hidden;
+  overflow-x: auto;
+  overflow-y: visible;
   background: white;
   border-radius: 12px;
   padding: 0;
   border: 2px solid #e0e0e0;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Custom scrollbar for table */
+.regulations-table::-webkit-scrollbar {
+  height: 12px;
+}
+
+.regulations-table::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 6px;
+}
+
+.regulations-table::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 6px;
+}
+
+.regulations-table::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
 
 .regulations-table table {
   width: 100%;
+  min-width: 1600px;
   border-collapse: separate;
   border-spacing: 0;
   color: #333;
 }
 
+.exact-text-cell {
+  display: flex;
+  flex-direction: column;
+}
+
 .exact-text-cell .preview-text {
-  display: -webkit-box;
-  -webkit-line-clamp: 5;
-  -webkit-box-orient: vertical;
-  line-clamp: 5;
+  max-height: 6.4em; /* Approximately 4 lines at 1.6 line-height */
   overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #333;
+  word-wrap: break-word;
+  position: relative;
 }
 
 .read-more-link {
@@ -602,45 +630,68 @@
   text-decoration: underline;
 }
 
-/* Exact Regulatory Text column width (narrower with preview) */
-.regulations-table th:nth-child(3),
-.regulations-table td:nth-child(3) {
-  max-width: 260px;
-  min-width: 200px;
-}
-
-/* Regulation / Clause column - reduced */
+/* Regulation / Clause column */
 .regulations-table th:nth-child(1),
 .regulations-table td:nth-child(1) {
-  max-width: 120px;
-  min-width: 90px;
+  min-width: 160px;
+  max-width: 200px;
 }
 
-/* Requirement column - reduced */
+/* Type of entity column */
 .regulations-table th:nth-child(2),
 .regulations-table td:nth-child(2) {
-  max-width: 140px;
-  min-width: 110px;
+  min-width: 200px;
+  max-width: 250px;
 }
 
-/* Format / Details column - slightly narrower to make room for Source */
+/* Requirement column */
+.regulations-table th:nth-child(3),
+.regulations-table td:nth-child(3) {
+  min-width: 180px;
+  max-width: 220px;
+}
+
+/* Summary Regulatory Text column */
+.regulations-table th:nth-child(4),
+.regulations-table td:nth-child(4) {
+  min-width: 300px;
+  max-width: 400px;
+}
+
+/* Format / Details column */
 .regulations-table th:nth-child(5),
 .regulations-table td:nth-child(5) {
-  max-width: 180px;
-  min-width: 90px;
+  min-width: 180px;
+  max-width: 250px;
+}
+
+/* Validation Check column */
+.regulations-table th:nth-child(6),
+.regulations-table td:nth-child(6) {
+  min-width: 200px;
+  max-width: 280px;
+}
+
+/* Penalty/Action column */
+.regulations-table th:nth-child(7),
+.regulations-table td:nth-child(7) {
+  min-width: 200px;
+  max-width: 300px;
 }
 
 .regulations-table th {
   background: #1e5f8b;
   color: white;
-  padding: 16px 20px;
+  padding: 20px 24px;
   text-align: left;
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 1rem;
+  line-height: 1.4;
   border-bottom: none;
   position: sticky;
   top: 0;
   z-index: 10;
+  white-space: normal;
 }
 
 .regulations-table th:first-child {
@@ -652,11 +703,23 @@
 }
 
 .regulations-table td {
-  padding: 16px 20px;
+  padding: 20px 24px;
   border-bottom: 1px solid #e8e8e8;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
   vertical-align: top;
   background: white;
+  word-wrap: break-word;
+  height: auto;
+}
+
+.regulations-table td:nth-child(1),
+.regulations-table td:nth-child(2),
+.regulations-table td:nth-child(3),
+.regulations-table td:nth-child(5),
+.regulations-table td:nth-child(8) {
+  font-weight: 500;
+  color: #444;
 }
 
 .regulations-table tbody tr:hover td {
@@ -680,30 +743,56 @@
   text-decoration: none;
   font-weight: 600;
   transition: all 0.3s ease;
-  white-space: normal;
-  word-break: break-word;
+  white-space: nowrap;
   display: inline-block;
-  max-width: 100%;
+  font-size: 0.95rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgba(78, 159, 61, 0.1);
 }
 
 .source-link:hover {
   color: #1e5f8b;
   text-decoration: underline;
+  background: rgba(30, 95, 139, 0.1);
 }
 
 .source-cell {
   min-width: 120px;
-  max-width: 140px;
+  max-width: 150px;
   text-align: center;
-  white-space: normal;
-  word-break: break-word;
-  padding: 12px 10px !important;
+  white-space: nowrap;
+  padding: 20px 16px !important;
+}
+
+.source-text {
+  color: #999;
+  font-size: 0.9rem;
+  font-style: italic;
 }
 
 /* Validation Check Column */
 .validation-check-cell {
-  min-width: 180px;
-  max-width: 240px;
+  min-width: 200px;
+  max-width: 280px;
+}
+
+/* Penalty Cell */
+.penalty-cell {
+  min-width: 200px;
+  max-width: 300px;
+}
+
+.penalty-content {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #555;
+}
+
+.no-penalty {
+  color: #999;
+  font-style: italic;
+  font-size: 0.85rem;
 }
 
 .validation-check-content {
@@ -843,10 +932,11 @@
 }
 
 .validation-line {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: #555;
-  line-height: 1.4;
+  line-height: 1.5;
   padding: 4px 0;
+  margin-bottom: 4px;
 }
 
 .no-validation {
