@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import './App.css';
+import Login from './Login';
 
 // Sample SEBI Regulations Data - Updated links
 const regulationsData = [
@@ -298,7 +299,7 @@ function TextCell({ text, regulation, requirement, onReadMore }) {
   );
 }
 
-function MainContent() {
+function MainContent({ onLogout }) {
   const navigate = useNavigate();
   const { regulationId, eventId } = useParams();
   const [searchParams] = useSearchParams();
@@ -386,7 +387,7 @@ function MainContent() {
   };
 
   const handleOpenDirectory = () => {
-    navigate('/?view=directory');
+    navigate('/home?view=directory');
     setShowDirectory(true);
     setSearchQuery('');
     setSelectedRegulation(null);
@@ -394,7 +395,7 @@ function MainContent() {
   };
 
   const handleCloseDirectory = () => {
-    navigate('/');
+    navigate('/home');
     setShowDirectory(false);
     setSelectedRegulation(null);
     setSelectedEvent(null);
@@ -600,7 +601,7 @@ function MainContent() {
           {/* Regulation Detail View */}
           {selectedRegulation && (
             <div className="detail-view">
-              <button onClick={() => navigate('/?view=directory')} className="back-button">
+              <button onClick={() => navigate('/home?view=directory')} className="back-button">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <line x1="19" y1="12" x2="5" y2="12"></line>
                   <polyline points="12 19 5 12 12 5"></polyline>
@@ -777,12 +778,63 @@ function MainContent() {
 }
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    // Check if user is already logged in (from sessionStorage)
+    return sessionStorage.getItem('lodr_authenticated') === 'true';
+  });
+
+  const handleLogin = () => {
+    // Set authentication state
+    setIsAuthenticated(true);
+    sessionStorage.setItem('lodr_authenticated', 'true');
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    sessionStorage.removeItem('lodr_authenticated');
+  };
+
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<MainContent />} />
-        <Route path="/regulation/:regulationId" element={<MainContent />} />
-        <Route path="/regulation/:regulationId/event/:eventId" element={<MainContent />} />
+        <Route 
+          path="/" 
+          element={<Login onLogin={handleLogin} />} 
+        />
+        <Route 
+          path="/login" 
+          element={<Login onLogin={handleLogin} />} 
+        />
+        <Route 
+          path="/home" 
+          element={
+            isAuthenticated ? (
+              <MainContent onLogout={handleLogout} />
+            ) : (
+              <Login onLogin={handleLogin} />
+            )
+          } 
+        />
+        <Route 
+          path="/regulation/:regulationId" 
+          element={
+            isAuthenticated ? (
+              <MainContent onLogout={handleLogout} />
+            ) : (
+              <Login onLogin={handleLogin} />
+            )
+          } 
+        />
+        <Route 
+          path="/regulation/:regulationId/event/:eventId" 
+          element={
+            isAuthenticated ? (
+              <MainContent onLogout={handleLogout} />
+            ) : (
+              <Login onLogin={handleLogin} />
+            )
+          } 
+        />
       </Routes>
     </Router>
   );
