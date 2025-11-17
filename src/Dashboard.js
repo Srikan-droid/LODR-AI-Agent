@@ -1,7 +1,37 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import './Dashboard.css';
+import { getLatestDisclosures, formatDisplayDate } from './data/disclosures';
+import disclosureData from './data/disclosures';
 
 function Dashboard() {
+  const latestDisclosures = useMemo(() => getLatestDisclosures(5), []);
+
+  const metrics = useMemo(() => {
+    const totalAnnouncements = disclosureData.length;
+    let scoreAbove80 = 0;
+    let scoreBetween50And80 = 0;
+    let scoreBelow50 = 0;
+
+    disclosureData.forEach((item) => {
+      if (item.complianceScore == null) return;
+
+      if (item.complianceScore >= 80) {
+        scoreAbove80 += 1;
+      } else if (item.complianceScore >= 50) {
+        scoreBetween50And80 += 1;
+      } else {
+        scoreBelow50 += 1;
+      }
+    });
+
+    return {
+      totalAnnouncements,
+      scoreAbove80,
+      scoreBetween50And80,
+      scoreBelow50,
+    };
+  }, []);
+
   return (
     <div className="dashboard-content">
       <h1 className="dashboard-title">Dashboard</h1>
@@ -9,21 +39,21 @@ function Dashboard() {
       <div className="entity-overview-section">
         <h2 className="section-title">Entity Overview</h2>
         <div className="metrics-container">
-          <div className="metric-card total-submission">
-            <div className="metric-value">5</div>
-            <div className="metric-label">Total Submission</div>
+          <div className="metric-card total-announcements">
+            <div className="metric-value">{metrics.totalAnnouncements}</div>
+            <div className="metric-label">Total Announcements</div>
           </div>
-          <div className="metric-card compliant">
-            <div className="metric-value">3</div>
-            <div className="metric-label">Compliant</div>
+          <div className="metric-card score-high">
+            <div className="metric-value">{metrics.scoreAbove80}</div>
+            <div className="metric-label">Compliance ≥ 80%</div>
           </div>
-          <div className="metric-card pending">
-            <div className="metric-value">1</div>
-            <div className="metric-label">Pending Review</div>
+          <div className="metric-card score-mid">
+            <div className="metric-value">{metrics.scoreBetween50And80}</div>
+            <div className="metric-label">Compliance 50-79%</div>
           </div>
-          <div className="metric-card non-compliant">
-            <div className="metric-value">1</div>
-            <div className="metric-label">Non-Compliant</div>
+          <div className="metric-card score-low">
+            <div className="metric-value">{metrics.scoreBelow50}</div>
+            <div className="metric-label">Compliance &lt; 50%</div>
           </div>
         </div>
         <div className="quick-upload-container">
@@ -44,61 +74,45 @@ function Dashboard() {
           <table className="disclosures-table">
             <thead>
               <tr>
-                <th>Disclosure Title</th>
-                <th>Date</th>
+                <th>Announcement Title</th>
+                <th>Date of Event</th>
                 <th>Regulations</th>
-                <th>Compliance Score</th>
                 <th>Status</th>
+                <th>Compliance Score</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>Credit Rating Disclosure - Q3 FY2024</td>
-                <td>15/01/2024</td>
-                <td>
-                  <span className="regulation-tag">Reg 30</span>
-                  <span className="regulation-tag">Reg 46</span>
-                </td>
-                <td>85%</td>
-                <td>
-                  <span className="status-badge compliant">Compliant</span>
-                </td>
-              </tr>
-              <tr>
-                <td>Board Meeting Outcome - Annual Results</td>
-                <td>12/01/2024</td>
-                <td>
-                  <span className="regulation-tag">Reg 46</span>
-                  <span className="regulation-tag">Reg 55</span>
-                </td>
-                <td>35%</td>
-                <td>
-                  <span className="status-badge non-compliant">Non-Compliant</span>
-                </td>
-              </tr>
-              <tr>
-                <td>Material Event - Change in Key Management</td>
-                <td>10/01/2024</td>
-                <td>
-                  <span className="regulation-tag">Reg 33</span>
-                </td>
-                <td>-</td>
-                <td>
-                  <span className="status-badge pending">Pending Review</span>
-                </td>
-              </tr>
-              <tr>
-                <td>Related Party Transaction Disclosure</td>
-                <td>08/01/2024</td>
-                <td>
-                  <span className="regulation-tag">Reg 45</span>
-                  <span className="regulation-tag">Reg 55</span>
-                </td>
-                <td>-</td>
-                <td>
-                  <span className="status-badge pending">Pending Review</span>
-                </td>
-              </tr>
+              {latestDisclosures.map((item) => {
+                const showScore = item.fileStatus === 'Completed' && item.complianceScore != null;
+                return (
+                  <tr key={item.id}>
+                    <td>{item.announcementTitle}</td>
+                    <td>{formatDisplayDate(item.dateOfEvent)}</td>
+                    <td>
+                      {item.regulations.map((reg) => (
+                        <span key={reg} className="regulation-tag">
+                          {reg}
+                        </span>
+                      ))}
+                    </td>
+                    <td>
+                      <span className={`status-badge ${getStatusClass(item.fileStatus)}`}>
+                        {item.fileStatus}
+                      </span>
+                    </td>
+                    <td>
+                      {showScore ? (
+                        <span className="compliance-score">
+                          <span className={`score-indicator ${getScoreIndicatorClass(item.complianceScore)}`} />
+                          {item.complianceScore}%
+                        </span>
+                      ) : (
+                        '-'
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -106,6 +120,29 @@ function Dashboard() {
     </div>
   );
 }
+
+const getStatusClass = (status) => {
+  switch (status) {
+    case 'Completed':
+      return 'status-completed';
+    case 'Processing':
+      return 'status-processing';
+    case 'Pending':
+      return 'status-pending';
+    case 'Error':
+      return 'status-error';
+    case 'Cancelled':
+      return 'status-cancelled';
+    default:
+      return '';
+  }
+};
+
+const getScoreIndicatorClass = (score) => {
+  if (score >= 80) return 'score-good';
+  if (score >= 50) return 'score-warning';
+  return 'score-poor';
+};
 
 export default Dashboard;
 

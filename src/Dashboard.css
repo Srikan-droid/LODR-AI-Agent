@@ -47,21 +47,21 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
-.metric-card.total-submission {
+.metric-card.total-announcements {
   border-left-color: #1e5f8b;
 }
 
-.metric-card.compliant {
+.metric-card.score-high {
   border-left-color: #4e9f3d;
   background: linear-gradient(to right, rgba(78, 159, 61, 0.05) 0%, white 10%);
 }
 
-.metric-card.pending {
+.metric-card.score-mid {
   border-left-color: #f59e0b;
   background: linear-gradient(to right, rgba(245, 158, 11, 0.05) 0%, white 10%);
 }
 
-.metric-card.non-compliant {
+.metric-card.score-low {
   border-left-color: #dc2626;
   background: linear-gradient(to right, rgba(220, 38, 38, 0.05) 0%, white 10%);
 }
@@ -73,19 +73,19 @@
   margin-bottom: 8px;
 }
 
-.metric-card.total-submission .metric-value {
+.metric-card.total-announcements .metric-value {
   color: #1e5f8b;
 }
 
-.metric-card.compliant .metric-value {
+.metric-card.score-high .metric-value {
   color: #4e9f3d;
 }
 
-.metric-card.pending .metric-value {
+.metric-card.score-mid .metric-value {
   color: #f59e0b;
 }
 
-.metric-card.non-compliant .metric-value {
+.metric-card.score-low .metric-value {
   color: #dc2626;
 }
 
@@ -200,19 +200,56 @@
   font-weight: 600;
 }
 
-.status-badge.compliant {
+.status-badge.status-completed {
   background: rgba(78, 159, 61, 0.1);
   color: #4e9f3d;
 }
 
-.status-badge.non-compliant {
+.status-badge.status-processing {
+  background: rgba(37, 99, 235, 0.1);
+  color: #2563eb;
+}
+
+.status-badge.status-pending {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.status-badge.status-error {
   background: rgba(220, 38, 38, 0.1);
   color: #dc2626;
 }
 
-.status-badge.pending {
-  background: rgba(245, 158, 11, 0.1);
-  color: #f59e0b;
+.status-badge.status-cancelled {
+  background: rgba(107, 114, 128, 0.15);
+  color: #4b5563;
+}
+
+.compliance-score {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.score-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.score-indicator.score-good {
+  background: #4e9f3d;
+}
+
+.score-indicator.score-warning {
+  background: #f59e0b;
+}
+
+.score-indicator.score-poor {
+  background: #dc2626;
 }
 
 @media (max-width: 768px) {

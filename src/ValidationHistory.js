@@ -1,50 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import './ValidationHistory.css';
+import { getAllDisclosures, formatDisplayDate } from './data/disclosures';
 
 function ValidationHistory() {
-  // Dummy validation history data
-  const validationHistory = [
-    {
-      id: 1,
-      announcementTitle: 'Credit Rating Disclosure - Q3 FY2024',
-      dateOfEvent: '15/01/2024',
-      uploadedDate: '15/01/2024',
-      status: 'Completed',
-      complianceScore: '85%',
-      fileName: 'credit_rating_q3_2024.pdf'
-    },
-    {
-      id: 2,
-      announcementTitle: 'Board Meeting Outcome - Annual Results',
-      dateOfEvent: '12/01/2024',
-      uploadedDate: '12/01/2024',
-      status: 'In Progress',
-      complianceScore: '-',
-      fileName: 'board_meeting_annual.pdf'
-    },
-    {
-      id: 3,
-      announcementTitle: 'Material Event - Change in Key Management',
-      dateOfEvent: '10/01/2024',
-      uploadedDate: '10/01/2024',
-      status: 'Pending',
-      complianceScore: '-',
-      fileName: 'material_event_management.docx'
-    }
-  ];
-
-  const getStatusBadgeClass = (status) => {
-    switch (status) {
-      case 'Completed':
-        return 'status-completed';
-      case 'In Progress':
-        return 'status-in-progress';
-      case 'Pending':
-        return 'status-pending';
-      default:
-        return '';
-    }
-  };
+  const validationHistory = useMemo(() => getAllDisclosures(), []);
 
   return (
     <div className="validation-history-content">
@@ -56,8 +15,9 @@ function ValidationHistory() {
             <tr>
               <th>Announcement Title</th>
               <th>Date of Event</th>
-              <th>Uploaded Date</th>
+              <th>Regulations</th>
               <th>File Name</th>
+              <th>Uploaded Date</th>
               <th>Status</th>
               <th>Compliance Score</th>
             </tr>
@@ -66,15 +26,31 @@ function ValidationHistory() {
             {validationHistory.map((item) => (
               <tr key={item.id}>
                 <td>{item.announcementTitle}</td>
-                <td>{item.dateOfEvent}</td>
-                <td>{item.uploadedDate}</td>
-                <td className="file-name-cell">{item.fileName}</td>
+                <td>{formatDisplayDate(item.dateOfEvent)}</td>
                 <td>
-                  <span className={`status-badge ${getStatusBadgeClass(item.status)}`}>
-                    {item.status}
+                  {item.regulations.map((reg) => (
+                    <span key={`${item.id}-${reg}`} className="regulation-tag">
+                      {reg}
+                    </span>
+                  ))}
+                </td>
+                <td className="file-name-cell">{item.fileName}</td>
+                <td>{formatDisplayDate(item.uploadedDate)}</td>
+                <td>
+                  <span className={`status-badge ${getStatusClass(item.fileStatus)}`}>
+                    {item.fileStatus}
                   </span>
                 </td>
-                <td>{item.complianceScore}</td>
+                <td>
+                  {item.fileStatus === 'Completed' && item.complianceScore != null ? (
+                    <span className="compliance-score">
+                      <span className={`score-indicator ${getScoreIndicatorClass(item.complianceScore)}`} />
+                      {item.complianceScore}%
+                    </span>
+                  ) : (
+                    '-'
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -83,5 +59,28 @@ function ValidationHistory() {
     </div>
   );
 }
+
+const getStatusClass = (status) => {
+  switch (status) {
+    case 'Completed':
+      return 'status-completed';
+    case 'Processing':
+      return 'status-processing';
+    case 'Pending':
+      return 'status-pending';
+    case 'Error':
+      return 'status-error';
+    case 'Cancelled':
+      return 'status-cancelled';
+    default:
+      return '';
+  }
+};
+
+const getScoreIndicatorClass = (score) => {
+  if (score >= 80) return 'score-good';
+  if (score >= 50) return 'score-warning';
+  return 'score-poor';
+};
 
 export default ValidationHistory;
