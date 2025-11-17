@@ -1,9 +1,11 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './UploadDisclosure.css';
+import { useDisclosures } from './context/DisclosuresContext';
 
 function UploadDisclosure() {
   const navigate = useNavigate();
+  const { addDisclosure, completeDisclosure } = useDisclosures();
   const [selectedFile, setSelectedFile] = useState(null);
   const [announcementTitle, setAnnouncementTitle] = useState('');
   const [dateOfEvent, setDateOfEvent] = useState('');
@@ -32,11 +34,11 @@ function UploadDisclosure() {
   };
 
   const handleFileSelect = (file) => {
-    const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
-    if (allowedTypes.includes(file.type) || file.name.endsWith('.pdf') || file.name.endsWith('.docx') || file.name.endsWith('.txt')) {
+    const isPdf = file?.type === 'application/pdf' || file?.name?.toLowerCase().endsWith('.pdf');
+    if (isPdf) {
       setSelectedFile(file);
     } else {
-      alert('Please upload a PDF, DOCX, or TXT file');
+      alert('Please upload a PDF file.');
     }
   };
 
@@ -60,9 +62,20 @@ function UploadDisclosure() {
       return;
     }
     if (!selectedFile) {
-      alert('Please upload a file');
+      alert('Please upload a PDF file');
       return;
     }
+    const isPdf = selectedFile.type === 'application/pdf' || selectedFile.name.toLowerCase().endsWith('.pdf');
+    if (!isPdf) {
+      alert('Only PDF uploads are supported at the moment');
+      return;
+    }
+
+    addDisclosure({
+      announcementTitle: announcementTitle.trim(),
+      dateOfEvent,
+      fileName: selectedFile.name,
+    });
 
     setIsValidating(true);
     setShowNotification(true);
@@ -73,11 +86,10 @@ function UploadDisclosure() {
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
-    
-    // Simulate validation - set to false after a delay
+
     setTimeout(() => {
       setIsValidating(false);
-    }, 2000);
+    }, 4000);
   };
 
   const handleCloseNotification = () => {
@@ -100,7 +112,7 @@ function UploadDisclosure() {
             type="file"
             ref={fileInputRef}
             onChange={handleFileInputChange}
-            accept=".pdf,.docx,.txt"
+            accept=".pdf"
             style={{ display: 'none' }}
           />
           <div className="upload-icon">
@@ -113,7 +125,7 @@ function UploadDisclosure() {
           <p className="upload-instruction">
             Drag and drop a file here or click to upload
           </p>
-          <p className="upload-formats">(PDF, DOCX, TXT)</p>
+          <p className="upload-formats">(.PDF files only)</p>
           {selectedFile && (
             <p className="selected-file-name">{selectedFile.name}</p>
           )}

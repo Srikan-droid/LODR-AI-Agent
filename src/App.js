@@ -7,6 +7,7 @@ import Dashboard from './Dashboard';
 import UploadDisclosure from './UploadDisclosure';
 import ValidationHistory from './ValidationHistory';
 import Feedback from './Feedback';
+import { DisclosuresProvider } from './context/DisclosuresContext';
 
 // Sample SEBI Regulations Data - Updated links
 const regulationsData = [
@@ -794,8 +795,9 @@ function App() {
   };
 
   return (
-    <Router>
-      <Routes>
+    <DisclosuresProvider>
+      <Router>
+        <Routes>
         <Route 
           path="/" 
           element={<Login onLogin={handleLogin} />} 
@@ -888,8 +890,9 @@ function App() {
             )
           } 
         />
-      </Routes>
-    </Router>
+        </Routes>
+      </Router>
+    </DisclosuresProvider>
   );
 }
 

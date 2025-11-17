@@ -569,7 +569,7 @@
   background: white;
   border-radius: 12px;
   padding: 0;
-  border: 2px solid #e0e0e0;
+  border: 1px solid #d1d5db;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   -webkit-overflow-scrolling: touch;
 }
@@ -596,8 +596,10 @@
 .regulations-table table {
   width: 100%;
   min-width: 1600px;
-  border-collapse: separate;
-  border-spacing: 0;
+  border-collapse: collapse;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  overflow: hidden;
   color: #333;
 }
 
@@ -687,30 +689,32 @@
   font-weight: 600;
   font-size: 1rem;
   line-height: 1.4;
-  border-bottom: none;
+  border-bottom: 2px solid #18476b;
+  border-right: 1px solid #18476b;
   position: sticky;
   top: 0;
   z-index: 10;
   white-space: normal;
 }
 
-.regulations-table th:first-child {
-  border-top-left-radius: 10px;
-}
-
 .regulations-table th:last-child {
-  border-top-right-radius: 10px;
+  border-right: none;
 }
 
 .regulations-table td {
   padding: 20px 24px;
   border-bottom: 1px solid #e8e8e8;
+  border-right: 1px solid #e8e8e8;
   font-size: 0.95rem;
   line-height: 1.6;
   vertical-align: top;
   background: white;
   word-wrap: break-word;
   height: auto;
+}
+
+.regulations-table td:last-child {
+  border-right: none;
 }
 
 .regulations-table td:nth-child(1),
@@ -728,14 +732,6 @@
 
 .regulations-table tbody tr:last-child td {
   border-bottom: none;
-}
-
-.regulations-table tbody tr:last-child td:first-child {
-  border-bottom-left-radius: 10px;
-}
-
-.regulations-table tbody tr:last-child td:last-child {
-  border-bottom-right-radius: 10px;
 }
 
 .source-link {

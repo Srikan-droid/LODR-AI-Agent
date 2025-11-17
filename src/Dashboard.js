@@ -1,18 +1,20 @@
 import React, { useMemo } from 'react';
 import './Dashboard.css';
-import { getLatestDisclosures, formatDisplayDate } from './data/disclosures';
-import disclosureData from './data/disclosures';
+import { formatDisplayDate } from './data/disclosures';
+import { useDisclosures } from './context/DisclosuresContext';
 
 function Dashboard() {
-  const latestDisclosures = useMemo(() => getLatestDisclosures(5), []);
+  const { disclosures } = useDisclosures();
+
+  const latestDisclosures = useMemo(() => disclosures.slice(0, 5), [disclosures]);
 
   const metrics = useMemo(() => {
-    const totalAnnouncements = disclosureData.length;
+    const totalAnnouncements = disclosures.length;
     let scoreAbove80 = 0;
     let scoreBetween50And80 = 0;
     let scoreBelow50 = 0;
 
-    disclosureData.forEach((item) => {
+    disclosures.forEach((item) => {
       if (item.complianceScore == null) return;
 
       if (item.complianceScore >= 80) {
@@ -30,7 +32,7 @@ function Dashboard() {
       scoreBetween50And80,
       scoreBelow50,
     };
-  }, []);
+  }, [disclosures]);
 
   return (
     <div className="dashboard-content">

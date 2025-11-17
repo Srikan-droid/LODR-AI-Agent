@@ -1,4 +1,4 @@
-const disclosureData = [
+export const initialDisclosures = [
   {
     id: 1,
     announcementTitle: 'Credit Rating Disclosure - Q3 FY2024',
@@ -78,19 +78,21 @@ const disclosureData = [
   },
 ];
 
-const sortByUploadedDateDesc = (data) =>
-  [...data].sort((a, b) => new Date(b.uploadedDate) - new Date(a.uploadedDate));
-
-export const getLatestDisclosures = (count = 5) =>
-  sortByUploadedDateDesc(disclosureData).slice(0, count);
-
-export const getAllDisclosures = () => sortByUploadedDateDesc(disclosureData);
+export const REGULATION_OPTIONS = [
+  'Reg 23',
+  'Reg 27',
+  'Reg 30',
+  'Reg 33',
+  'Reg 34',
+  'Reg 45',
+  'Reg 46',
+  'Reg 52',
+  'Reg 55',
+];
 
 export const formatDisplayDate = (isoDate) => {
   if (!isoDate) return '';
   const [year, month, day] = isoDate.split('-');
   return `${day}/${month}/${year}`;
 };
-
-export default disclosureData;
 
