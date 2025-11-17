@@ -1,20 +1,36 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { initialDisclosures, REGULATION_OPTIONS } from '../data/disclosures';
+import { generateRuleResults } from '../utils/ruleUtils';
 
 const STORAGE_KEY = 'lodr_disclosures';
 
 const DisclosuresContext = createContext();
 
+const decorateEntry = (entry) => {
+  if (entry.fileStatus === 'Completed' && entry.complianceScore != null) {
+    const hasRules = Array.isArray(entry.ruleResults) && entry.ruleResults.length > 0;
+    return {
+      ...entry,
+      ruleResults: hasRules ? entry.ruleResults : generateRuleResults(entry.complianceScore),
+    };
+  }
+
+  return {
+    ...entry,
+    ruleResults: entry.ruleResults || [],
+  };
+};
+
 const loadInitialDisclosures = () => {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      return JSON.parse(stored);
+      return JSON.parse(stored).map(decorateEntry);
     }
   } catch (error) {
     console.error('Failed to parse stored disclosures', error);
   }
-  return initialDisclosures;
+  return initialDisclosures.map(decorateEntry);
 };
 
 const getRandomRegulations = () => {
@@ -53,6 +69,7 @@ export const DisclosuresProvider = ({ children }) => {
       complianceStatus: 'Pending Review',
       fileStatus: 'Processing',
       fileName,
+      ruleResults: [],
     };
 
     setDisclosures((prev) => [newEntry, ...prev]);
@@ -70,6 +87,7 @@ export const DisclosuresProvider = ({ children }) => {
             fileStatus: 'Completed',
             complianceScore,
             complianceStatus: getComplianceStatus(complianceScore),
+            ruleResults: generateRuleResults(complianceScore),
           };
         })
       );

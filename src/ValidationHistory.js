@@ -1,10 +1,12 @@
 import React, { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './ValidationHistory.css';
 import { formatDisplayDate } from './data/disclosures';
 import { useDisclosures } from './context/DisclosuresContext';
 
 function ValidationHistory() {
   const { disclosures } = useDisclosures();
+  const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState('all');
   const [scoreFilter, setScoreFilter] = useState('all');
   const [eventDateFrom, setEventDateFrom] = useState('');
@@ -18,8 +20,6 @@ function ValidationHistory() {
 
   const filteredHistory = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
-
-    const toDate = (value) => (value ? new Date(`${value}T00:00:00`) : null);
 
     const isWithinRange = (dateStr, from, to) => {
       if (!dateStr) return false;
@@ -223,36 +223,49 @@ function ValidationHistory() {
             </tr>
           </thead>
           <tbody>
-            {currentPageData.map((item) => (
-              <tr key={item.id}>
-                <td>{item.announcementTitle}</td>
-                <td>{formatDisplayDate(item.dateOfEvent)}</td>
-                <td>
-                  {item.regulations.map((reg) => (
-                    <span key={`${item.id}-${reg}`} className="regulation-tag">
-                      {reg}
+            {currentPageData.map((item) => {
+              const isClickable = item.fileStatus === 'Completed';
+              return (
+                <tr key={item.id}>
+                  <td>
+                    <button
+                      className={`disclosure-link ${!isClickable ? 'disabled' : ''}`}
+                      onClick={() => isClickable && navigate(`/validation/${item.id}`, { state: { from: 'validation' } })}
+                      disabled={!isClickable}
+                    >
+                      {item.announcementTitle}
+                    </button>
+                  </td>
+                  <td>{formatDisplayDate(item.dateOfEvent)}</td>
+                  <td>
+                    {item.regulations.map((reg) => (
+                      <span key={`${item.id}-${reg}`} className="regulation-tag">
+                        {reg}
+                      </span>
+                    ))}
+                  </td>
+                  <td className="file-name-cell">{item.fileName}</td>
+                  <td>{formatDisplayDate(item.uploadedDate)}</td>
+                  <td>
+                    <span className={`status-badge ${getStatusClass(item.fileStatus)}`}>
+                      {item.fileStatus}
                     </span>
-                  ))}
-                </td>
-                <td className="file-name-cell">{item.fileName}</td>
-                <td>{formatDisplayDate(item.uploadedDate)}</td>
-                <td>
-                  <span className={`status-badge ${getStatusClass(item.fileStatus)}`}>
-                    {item.fileStatus}
-                  </span>
-                </td>
-                <td>
-                  {item.fileStatus === 'Completed' && item.complianceScore != null ? (
-                    <span className="compliance-score">
-                      <span className={`score-indicator ${getScoreIndicatorClass(item.complianceScore)}`} />
-                      {item.complianceScore}%
-                    </span>
-                  ) : (
-                    '-'
-                  )}
-                </td>
-              </tr>
-            ))}
+                  </td>
+                  <td>
+                    {item.fileStatus === 'Completed' && item.complianceScore != null ? (
+                      <span className="compliance-score">
+                        <span
+                          className={`score-indicator ${getScoreIndicatorClass(item.complianceScore)}`}
+                        />
+                        {item.complianceScore}%
+                      </span>
+                    ) : (
+                      '-'
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -276,6 +289,7 @@ function ValidationHistory() {
           Next
         </button>
       </div>
+
     </div>
   );
 }

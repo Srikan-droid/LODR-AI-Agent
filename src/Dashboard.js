@@ -1,10 +1,12 @@
 import React, { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 import { formatDisplayDate } from './data/disclosures';
 import { useDisclosures } from './context/DisclosuresContext';
 
 function Dashboard() {
   const { disclosures } = useDisclosures();
+  const navigate = useNavigate();
 
   const latestDisclosures = useMemo(() => disclosures.slice(0, 5), [disclosures]);
 
@@ -86,9 +88,18 @@ function Dashboard() {
             <tbody>
               {latestDisclosures.map((item) => {
                 const showScore = item.fileStatus === 'Completed' && item.complianceScore != null;
+                const isClickable = item.fileStatus === 'Completed';
                 return (
                   <tr key={item.id}>
-                    <td>{item.announcementTitle}</td>
+                    <td>
+                      <button
+                        className={`disclosure-link ${!isClickable ? 'disabled' : ''}`}
+                        onClick={() => isClickable && navigate(`/validation/${item.id}`, { state: { from: 'dashboard' } })}
+                        disabled={!isClickable}
+                      >
+                        {item.announcementTitle}
+                      </button>
+                    </td>
                     <td>{formatDisplayDate(item.dateOfEvent)}</td>
                     <td>
                       {item.regulations.map((reg) => (

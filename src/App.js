@@ -6,6 +6,7 @@ import Layout from './Layout';
 import Dashboard from './Dashboard';
 import UploadDisclosure from './UploadDisclosure';
 import ValidationHistory from './ValidationHistory';
+import DisclosureDetailsPage from './pages/DisclosureDetailsPage';
 import Feedback from './Feedback';
 import { DisclosuresProvider } from './context/DisclosuresContext';
 
@@ -841,6 +842,18 @@ function App() {
               <Login onLogin={handleLogin} />
             )
           } 
+        />
+        <Route
+          path="/validation/:disclosureId"
+          element={
+            isAuthenticated ? (
+              <Layout onLogout={handleLogout}>
+                <DisclosureDetailsPage />
+              </Layout>
+            ) : (
+              <Login onLogin={handleLogin} />
+            )
+          }
         />
         <Route 
           path="/rkb/*" 

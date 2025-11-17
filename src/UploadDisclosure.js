@@ -5,7 +5,7 @@ import { useDisclosures } from './context/DisclosuresContext';
 
 function UploadDisclosure() {
   const navigate = useNavigate();
-  const { addDisclosure, completeDisclosure } = useDisclosures();
+  const { addDisclosure } = useDisclosures();
   const [selectedFile, setSelectedFile] = useState(null);
   const [announcementTitle, setAnnouncementTitle] = useState('');
   const [dateOfEvent, setDateOfEvent] = useState('');
