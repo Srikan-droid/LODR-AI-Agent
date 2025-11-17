@@ -24,47 +24,52 @@
 }
 
 .sidebar-header {
-  padding: 2px 12px;
+  padding: 18.5px 12px;
   border-bottom: 1px solid #e0e0e0;
   background: white;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   position: relative;
-  gap: 8px;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sidebar-header::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: -1px;
+  width: 1px;
+  height: 100%;
+  background: #e0e0e0;
+  display: none;
 }
 
 .sidebar.collapsed .sidebar-header {
-  padding: 2px 4px;
-  justify-content: space-between;
-  gap: 8px;
-  flex-direction: column;
-  align-items: center;
+  padding: 16px 4px;
+  gap: 12px;
+}
+
+.sidebar.collapsed .sidebar-header::after {
+  display: block;
 }
 
 .logo-container {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
+  justify-content: center;
+  padding: 0;
   margin: 0;
-  background: transparent;
-  border-radius: 12px 0 0 12px;
-  border-left: none;
-  flex: 1;
-  box-sizing: border-box;
-  min-width: 0;
+  width: 100%;
 }
 
 .sidebar.collapsed .logo-container {
-  justify-content: center;
-  padding: 12px 4px;
-  flex: 0;
   width: 100%;
 }
 
 .sidebar-logo-image {
-  height: 40px;
+  height: 50px;
   width: auto;
   object-fit: contain;
   flex-shrink: 0;
@@ -95,6 +100,9 @@
 }
 
 .sidebar-toggle {
+  position: absolute;
+  top: 8px;
+  right: 8px;
   background: transparent;
   border: none;
   padding: 8px;
@@ -106,20 +114,19 @@
   justify-content: center;
   transition: all 0.2s ease;
   flex-shrink: 0;
-  margin-left: auto;
-}
-
-.sidebar.collapsed .sidebar-toggle {
-  margin-left: 0;
-  margin-top: 4px;
-  padding: 8px;
-  width: 100%;
-  justify-content: center;
 }
 
 .sidebar-toggle:hover {
   background: #f0f0f0;
   color: #1e5f8b;
+}
+
+.sidebar.collapsed .sidebar-toggle {
+  position: static;
+  margin-top: 0;
+  padding: 8px;
+  width: 100%;
+  justify-content: center;
 }
 
 .sidebar-nav {
@@ -190,7 +197,7 @@
 .top-header {
   background: white;
   border-bottom: 1px solid #e0e0e0;
-  padding: 17.5px 32px;
+  padding: 20.5px 32px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -202,6 +209,28 @@
 
 .header-left {
   flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.header-logo-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.header-logo-main {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1e5f8b;
+  line-height: 1.2;
+}
+
+.header-logo-sub {
+  font-size: 0.85rem;
+  color: #666;
+  font-weight: 500;
 }
 
 .header-right {

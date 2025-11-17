@@ -1,17 +1,205 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import './UploadDisclosure.css';
 
 function UploadDisclosure() {
+  const navigate = useNavigate();
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [announcementTitle, setAnnouncementTitle] = useState('');
+  const [dateOfEvent, setDateOfEvent] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
+  const [showNotification, setShowNotification] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      handleFileSelect(files[0]);
+    }
+  };
+
+  const handleFileSelect = (file) => {
+    const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
+    if (allowedTypes.includes(file.type) || file.name.endsWith('.pdf') || file.name.endsWith('.docx') || file.name.endsWith('.txt')) {
+      setSelectedFile(file);
+    } else {
+      alert('Please upload a PDF, DOCX, or TXT file');
+    }
+  };
+
+  const handleFileInputChange = (e) => {
+    if (e.target.files.length > 0) {
+      handleFileSelect(e.target.files[0]);
+    }
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleRunValidation = () => {
+    if (!announcementTitle.trim()) {
+      alert('Please enter an Announcement Title');
+      return;
+    }
+    if (!dateOfEvent.trim()) {
+      alert('Please enter a Date of Event');
+      return;
+    }
+    if (!selectedFile) {
+      alert('Please upload a file');
+      return;
+    }
+
+    setIsValidating(true);
+    setShowNotification(true);
+    setSelectedFile(null);
+    setAnnouncementTitle('');
+    setDateOfEvent('');
+    setIsDragging(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    
+    // Simulate validation - set to false after a delay
+    setTimeout(() => {
+      setIsValidating(false);
+    }, 2000);
+  };
+
+  const handleCloseNotification = () => {
+    setShowNotification(false);
+  };
+
   return (
-    <div style={{ padding: '32px' }}>
-      <h1 style={{ fontSize: '2rem', fontWeight: 700, color: '#1e5f8b', marginBottom: '24px' }}>
-        Upload Disclosure
-      </h1>
-      <p style={{ color: '#666', fontSize: '1rem' }}>
-        Upload disclosure documents here. This feature is coming soon.
-      </p>
+    <div className="upload-disclosure-content">
+      <h1 className="upload-page-title">Upload Disclosure</h1>
+      
+      <div className="upload-section">
+        <div
+          className={`file-upload-area ${isDragging ? 'dragging' : ''} ${selectedFile ? 'has-file' : ''}`}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          onClick={handleUploadClick}
+        >
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileInputChange}
+            accept=".pdf,.docx,.txt"
+            style={{ display: 'none' }}
+          />
+          <div className="upload-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+          </div>
+          <p className="upload-instruction">
+            Drag and drop a file here or click to upload
+          </p>
+          <p className="upload-formats">(PDF, DOCX, TXT)</p>
+          {selectedFile && (
+            <p className="selected-file-name">{selectedFile.name}</p>
+          )}
+        </div>
+
+        <div className="form-fields">
+          <div className="form-field">
+            <label htmlFor="announcement-title" className="field-label">
+              Announcement Title <span className="required">*</span>
+            </label>
+            <input
+              type="text"
+              id="announcement-title"
+              className="form-input"
+              value={announcementTitle}
+              onChange={(e) => setAnnouncementTitle(e.target.value)}
+              placeholder="Enter announcement title"
+              required
+            />
+          </div>
+
+          <div className="form-field">
+            <label htmlFor="date-of-event" className="field-label">
+              Date of Event <span className="required">*</span>
+            </label>
+            <input
+              type="date"
+              id="date-of-event"
+              className="form-input"
+              value={dateOfEvent}
+              onChange={(e) => setDateOfEvent(e.target.value)}
+              required
+            />
+          </div>
+        </div>
+
+        <div className="action-section">
+          <button
+            className="run-validation-button"
+            onClick={handleRunValidation}
+            disabled={isValidating}
+          >
+            Run AI Validation
+          </button>
+        </div>
+
+      </div>
+
+      {showNotification && (
+        <div className="notification-overlay" onClick={handleCloseNotification}>
+          <div className="notification-popup" onClick={(e) => e.stopPropagation()}>
+            <div className="notification-header">
+              <div className="notification-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+              </div>
+              <button className="notification-close" onClick={handleCloseNotification}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            <div className="notification-body">
+              <h3 className="notification-title">Validation in Progress</h3>
+              <p className="notification-message">
+                Your file is being validated. Please check the status in{' '}
+                <button 
+                  className="notification-link" 
+                  onClick={() => {
+                    handleCloseNotification();
+                    navigate('/validation');
+                  }}
+                >
+                  Validation History
+                </button>
+                .
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 export default UploadDisclosure;
-

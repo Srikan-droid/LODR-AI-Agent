@@ -38,12 +38,6 @@ function Layout({ children, onLogout }) {
         <div className="sidebar-header">
           <div className="logo-container">
             <img src="/iris logo.png" alt="iRIS Logo" className="sidebar-logo-image" />
-            {!isCollapsed && (
-              <div className="logo-text-container">
-                <div className="logo-text-main">LODR AI Agent</div>
-                <div className="logo-text-sub">Enterprise</div>
-              </div>
-            )}
           </div>
           <button className="sidebar-toggle" onClick={toggleSidebar}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -125,7 +119,12 @@ function Layout({ children, onLogout }) {
       <div className={`main-content-wrapper ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
         {/* Top Header */}
         <header className="top-header">
-          <div className="header-left"></div>
+          <div className="header-left">
+            <div className="header-logo-text">
+              <div className="header-logo-main">LODR AI Agent</div>
+              <div className="header-logo-sub">Enterprise</div>
+            </div>
+          </div>
           <div className="header-right">
             <button className="header-button">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

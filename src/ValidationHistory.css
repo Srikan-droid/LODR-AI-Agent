@@ -1,0 +1,95 @@
+.validation-history-content {
+  padding: 32px;
+  background: #f8f9fa;
+  min-height: 100vh;
+}
+
+.validation-history-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1e5f8b;
+  margin: 0 0 32px 0;
+}
+
+.validation-table-container {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow-x: auto;
+}
+
+.validation-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.validation-table thead {
+  background: #f5f5f5;
+}
+
+.validation-table th {
+  padding: 16px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #333;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.validation-table td {
+  padding: 16px;
+  border-bottom: 1px solid #e8e8e8;
+  font-size: 0.95rem;
+  color: #555;
+}
+
+.validation-table tbody tr:hover {
+  background: #f9f9f9;
+}
+
+.file-name-cell {
+  font-family: monospace;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.status-badge.status-completed {
+  background: rgba(78, 159, 61, 0.1);
+  color: #4e9f3d;
+}
+
+.status-badge.status-in-progress {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.status-badge.status-pending {
+  background: rgba(156, 163, 175, 0.1);
+  color: #6b7280;
+}
+
+@media (max-width: 768px) {
+  .validation-history-content {
+    padding: 20px;
+  }
+
+  .validation-table-container {
+    padding: 16px;
+  }
+
+  .validation-table th,
+  .validation-table td {
+    padding: 12px 8px;
+    font-size: 0.85rem;
+  }
+}
+
