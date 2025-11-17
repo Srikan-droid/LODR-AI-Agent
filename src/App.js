@@ -2,6 +2,11 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import './App.css';
 import Login from './Login';
+import Layout from './Layout';
+import Dashboard from './Dashboard';
+import UploadDisclosure from './UploadDisclosure';
+import ValidationHistory from './ValidationHistory';
+import Feedback from './Feedback';
 
 // Sample SEBI Regulations Data - Updated links
 const regulationsData = [
@@ -380,14 +385,14 @@ function MainContent({ onLogout }) {
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      navigate(`/?search=${encodeURIComponent(searchQuery)}&view=directory`);
+      navigate(`/rkb?search=${encodeURIComponent(searchQuery)}&view=directory`);
       setShowDirectory(true);
       setSelectedRegulation(null);
     }
   };
 
   const handleOpenDirectory = () => {
-    navigate('/home?view=directory');
+    navigate('/rkb?view=directory');
     setShowDirectory(true);
     setSearchQuery('');
     setSelectedRegulation(null);
@@ -395,7 +400,7 @@ function MainContent({ onLogout }) {
   };
 
   const handleCloseDirectory = () => {
-    navigate('/home');
+    navigate('/rkb');
     setShowDirectory(false);
     setSelectedRegulation(null);
     setSelectedEvent(null);
@@ -451,12 +456,7 @@ function MainContent({ onLogout }) {
 
   return (
     <div className="App">
-      <header className="App-header">
-        <div className="header-ribbon">
-          <h1 className="main-title">Regulatory Knowledge Base</h1>
-          <p className="subtitle">Your comprehensive guide to regulations</p>
-        </div>
-        <div className="container">
+      <div className="container">
           
           {!showDirectory && !selectedRegulation && (
             <div className="homepage-content">
@@ -601,7 +601,7 @@ function MainContent({ onLogout }) {
           {/* Regulation Detail View */}
           {selectedRegulation && (
             <div className="detail-view">
-              <button onClick={() => navigate('/home?view=directory')} className="back-button">
+              <button onClick={() => navigate('/rkb?view=directory')} className="back-button">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <line x1="19" y1="12" x2="5" y2="12"></line>
                   <polyline points="12 19 5 12 12 5"></polyline>
@@ -772,7 +772,6 @@ function MainContent({ onLogout }) {
             </div>
           )}
         </div>
-      </header>
     </div>
   );
 }
@@ -809,7 +808,57 @@ function App() {
           path="/home" 
           element={
             isAuthenticated ? (
-              <MainContent onLogout={handleLogout} />
+              <Layout onLogout={handleLogout}>
+                <Dashboard />
+              </Layout>
+            ) : (
+              <Login onLogin={handleLogin} />
+            )
+          } 
+        />
+        <Route 
+          path="/upload" 
+          element={
+            isAuthenticated ? (
+              <Layout onLogout={handleLogout}>
+                <UploadDisclosure />
+              </Layout>
+            ) : (
+              <Login onLogin={handleLogin} />
+            )
+          } 
+        />
+        <Route 
+          path="/validation" 
+          element={
+            isAuthenticated ? (
+              <Layout onLogout={handleLogout}>
+                <ValidationHistory />
+              </Layout>
+            ) : (
+              <Login onLogin={handleLogin} />
+            )
+          } 
+        />
+        <Route 
+          path="/rkb/*" 
+          element={
+            isAuthenticated ? (
+              <Layout onLogout={handleLogout}>
+                <MainContent onLogout={handleLogout} />
+              </Layout>
+            ) : (
+              <Login onLogin={handleLogin} />
+            )
+          } 
+        />
+        <Route 
+          path="/feedback" 
+          element={
+            isAuthenticated ? (
+              <Layout onLogout={handleLogout}>
+                <Feedback />
+              </Layout>
             ) : (
               <Login onLogin={handleLogin} />
             )
@@ -819,7 +868,9 @@ function App() {
           path="/regulation/:regulationId" 
           element={
             isAuthenticated ? (
-              <MainContent onLogout={handleLogout} />
+              <Layout onLogout={handleLogout}>
+                <MainContent onLogout={handleLogout} />
+              </Layout>
             ) : (
               <Login onLogin={handleLogin} />
             )
@@ -829,7 +880,9 @@ function App() {
           path="/regulation/:regulationId/event/:eventId" 
           element={
             isAuthenticated ? (
-              <MainContent onLogout={handleLogout} />
+              <Layout onLogout={handleLogout}>
+                <MainContent onLogout={handleLogout} />
+              </Layout>
             ) : (
               <Login onLogin={handleLogin} />
             )
