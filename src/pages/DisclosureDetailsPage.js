@@ -27,6 +27,17 @@ function DisclosureDetailsPage() {
     return [];
   }, [disclosure]);
 
+  const failedRules = useMemo(() => {
+    return derivedRules.filter((rule) => rule.status?.toLowerCase() === 'fail');
+  }, [derivedRules]);
+
+  const aiRecommendations = useMemo(() => {
+    return failedRules.map((rule) => ({
+      ruleName: rule.name,
+      recommendation: generateAIRecommendation(rule.name),
+    }));
+  }, [failedRules]);
+
   if (!disclosure) {
     return (
       <div className="disclosure-details-page">
@@ -66,12 +77,18 @@ function DisclosureDetailsPage() {
               Date: <span>{formatDisplayDate(dateOfEvent)}</span> • Source: <span>Upload</span>
             </p>
             <p>
-              Status: <span className="status-pill">{fileStatus}</span>
+              Status: <span className={`status-badge ${getStatusClass(fileStatus)}`}>{fileStatus}</span>
             </p>
           </div>
           <div className="summary-score">
             <span>Compliance Score</span>
-            <strong>{complianceScore != null ? `${complianceScore}%` : '-'}</strong>
+            {complianceScore != null ? (
+              <strong className={`compliance-score ${getScoreIndicatorClass(complianceScore)}`}>
+                {complianceScore}%
+              </strong>
+            ) : (
+              <strong>-</strong>
+            )}
           </div>
         </div>
       </section>
@@ -112,12 +129,71 @@ function DisclosureDetailsPage() {
         </div>
       </section>
 
+      {aiRecommendations.length > 0 && (
+        <section className="details-card">
+          <div className="ai-recommendations-header">
+            <h2>AI Recommendation</h2>
+          </div>
+          <div className="ai-recommendations-list">
+            {aiRecommendations.map((rec, index) => (
+              <div key={index} className="ai-recommendation-item">
+                <div className="recommendation-rule">
+                  <span className="recommendation-icon">💡</span>
+                  <strong>{rec.ruleName}</strong>
+                </div>
+                <p className="recommendation-text">{rec.recommendation}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {showModal && (
         <DisclosureDetailsModal disclosure={disclosure} onClose={() => setShowModal(false)} />
       )}
     </div>
   );
 }
+
+const getStatusClass = (status) => {
+  switch (status) {
+    case 'Completed':
+      return 'status-completed';
+    case 'Processing':
+      return 'status-processing';
+    case 'Pending':
+      return 'status-pending';
+    case 'Error':
+      return 'status-error';
+    case 'Cancelled':
+      return 'status-cancelled';
+    default:
+      return '';
+  }
+};
+
+const getScoreIndicatorClass = (score) => {
+  if (score >= 80) return 'score-good';
+  if (score >= 50) return 'score-warning';
+  return 'score-poor';
+};
+
+const generateAIRecommendation = (ruleName) => {
+  const recommendations = {
+    'Announcement title matches filing': 'Ensure the announcement title exactly matches the filing document title. Review the submitted document and update the title to reflect the exact wording used in the official filing.',
+    'Date of event is within acceptable range': 'Verify that the date of event falls within the regulatory reporting window. If the date is outside the acceptable range, provide justification or correct the date to match the actual event occurrence.',
+    'All mandatory fields are present': 'Review the disclosure document and ensure all required fields as per the regulation are completed. Missing mandatory fields may result in non-compliance penalties.',
+    'File format is PDF': 'Convert the document to PDF format before submission. PDF format ensures document integrity and compatibility with regulatory systems.',
+    'Company name mentioned in document': 'Include the full legal company name as registered with the regulatory authority. Ensure the name appears consistently throughout the document.',
+    'Disclosure made within 24 hours of event': 'Submit the disclosure within 24 hours of the event occurrence. Late submissions may require additional justification and could result in penalties.',
+    'Relevant regulation cited correctly': 'Verify that the regulation numbers and clauses cited in the document are accurate and current. Cross-reference with the latest regulatory guidelines.',
+    'Financial figures are consistent': 'Ensure all financial figures mentioned in the document are consistent across all sections. Verify calculations and cross-check with source documents.',
+    'Signatories are authorized personnel': 'Confirm that the signatories listed in the document are authorized to sign on behalf of the company as per the company\'s authorization matrix.',
+    'Document is free from typos': 'Perform a thorough review of the document for spelling and grammatical errors. Typos can affect the document\'s credibility and may need to be corrected through an amendment.',
+  };
+
+  return recommendations[ruleName] || 'Review the validation rule and ensure all requirements are met. Consult the regulatory guidelines for specific compliance requirements related to this rule.';
+};
 
 export default DisclosureDetailsPage;
 

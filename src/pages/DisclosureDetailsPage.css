@@ -51,12 +51,37 @@
   color: #475569;
 }
 
-.status-pill {
-  padding: 4px 12px;
-  background: rgba(30, 95, 139, 0.08);
-  border-radius: 999px;
-  color: #1e3a8a;
+.status-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 0.85rem;
   font-weight: 600;
+}
+
+.status-badge.status-completed {
+  background: rgba(78, 159, 61, 0.1);
+  color: #4e9f3d;
+}
+
+.status-badge.status-processing {
+  background: rgba(37, 99, 235, 0.1);
+  color: #2563eb;
+}
+
+.status-badge.status-pending {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.status-badge.status-error {
+  background: rgba(220, 38, 38, 0.1);
+  color: #dc2626;
+}
+
+.status-badge.status-cancelled {
+  background: rgba(107, 114, 128, 0.15);
+  color: #4b5563;
 }
 
 .summary-score {
@@ -74,6 +99,19 @@
 .summary-score strong {
   font-size: 2.4rem;
   color: #0f172a;
+  display: block;
+}
+
+.compliance-score.score-good {
+  color: #4e9f3d;
+}
+
+.compliance-score.score-warning {
+  color: #f59e0b;
+}
+
+.compliance-score.score-poor {
+  color: #dc2626;
 }
 
 .rules-header {
@@ -165,6 +203,59 @@
   margin: 0;
 }
 
+.ai-recommendations-header {
+  margin-bottom: 20px;
+}
+
+.ai-recommendations-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #0f172a;
+}
+
+.ai-recommendations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ai-recommendation-item {
+  padding: 16px;
+  background: #f8fafc;
+  border-left: 4px solid #1e5f8b;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.ai-recommendation-item:hover {
+  background: #f1f5f9;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.recommendation-rule {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.recommendation-icon {
+  font-size: 1.2rem;
+}
+
+.recommendation-rule strong {
+  font-size: 0.95rem;
+  color: #1e5f8b;
+  font-weight: 600;
+}
+
+.recommendation-text {
+  margin: 0;
+  color: #475569;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  padding-left: 28px;
+}
 
 @media (max-width: 768px) {
   .disclosure-details-page {
