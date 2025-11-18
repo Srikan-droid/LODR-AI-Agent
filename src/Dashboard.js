@@ -1,12 +1,14 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 import { formatDisplayDate } from './data/disclosures';
 import { useDisclosures } from './context/DisclosuresContext';
+import QuickUploadModal from './components/QuickUploadModal';
 
 function Dashboard() {
   const { disclosures } = useDisclosures();
   const navigate = useNavigate();
+  const [isQuickUploadOpen, setIsQuickUploadOpen] = useState(false);
 
   const latestDisclosures = useMemo(() => disclosures.slice(0, 5), [disclosures]);
 
@@ -43,25 +45,37 @@ function Dashboard() {
       <div className="entity-overview-section">
         <h2 className="section-title">Entity Overview</h2>
         <div className="metrics-container">
-          <div className="metric-card total-announcements">
+          <div 
+            className="metric-card total-announcements clickable" 
+            onClick={() => navigate('/validation')}
+          >
             <div className="metric-value">{metrics.totalAnnouncements}</div>
             <div className="metric-label">Total Announcements</div>
           </div>
-          <div className="metric-card score-high">
+          <div 
+            className="metric-card score-high clickable" 
+            onClick={() => navigate('/validation?scoreFilter=80-plus')}
+          >
             <div className="metric-value">{metrics.scoreAbove80}</div>
             <div className="metric-label">Compliance ≥ 80%</div>
           </div>
-          <div className="metric-card score-mid">
+          <div 
+            className="metric-card score-mid clickable" 
+            onClick={() => navigate('/validation?scoreFilter=50-79')}
+          >
             <div className="metric-value">{metrics.scoreBetween50And80}</div>
             <div className="metric-label">Compliance 50-79%</div>
           </div>
-          <div className="metric-card score-low">
+          <div 
+            className="metric-card score-low clickable" 
+            onClick={() => navigate('/validation?scoreFilter=below-50')}
+          >
             <div className="metric-value">{metrics.scoreBelow50}</div>
             <div className="metric-label">Compliance &lt; 50%</div>
           </div>
         </div>
         <div className="quick-upload-container">
-          <button className="quick-upload-button">
+          <button className="quick-upload-button" onClick={() => setIsQuickUploadOpen(true)}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
               <polyline points="17 8 12 3 7 8"></polyline>
@@ -130,6 +144,11 @@ function Dashboard() {
           </table>
         </div>
       </div>
+
+      <QuickUploadModal 
+        isOpen={isQuickUploadOpen} 
+        onClose={() => setIsQuickUploadOpen(false)} 
+      />
     </div>
   );
 }

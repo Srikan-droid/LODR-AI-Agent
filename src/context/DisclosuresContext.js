@@ -3,6 +3,7 @@ import { initialDisclosures, REGULATION_OPTIONS } from '../data/disclosures';
 import { generateRuleResults } from '../utils/ruleUtils';
 
 const STORAGE_KEY = 'lodr_disclosures';
+const LAST_UPLOAD_KEY = 'lodr_last_upload';
 
 const DisclosuresContext = createContext();
 
@@ -59,6 +60,13 @@ export const DisclosuresProvider = ({ children }) => {
   }, [disclosures]);
 
   const addDisclosure = ({ announcementTitle, dateOfEvent, fileName }) => {
+    // Save last upload data for quick upload pre-filling
+    try {
+      localStorage.setItem(LAST_UPLOAD_KEY, JSON.stringify({ announcementTitle, dateOfEvent }));
+    } catch (error) {
+      console.error('Failed to save last upload data', error);
+    }
+
     const newEntry = {
       id: Date.now(),
       announcementTitle,
@@ -101,11 +109,24 @@ export const DisclosuresProvider = ({ children }) => {
     [disclosures]
   );
 
+  const getLastUploadData = () => {
+    try {
+      const stored = localStorage.getItem(LAST_UPLOAD_KEY);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (error) {
+      console.error('Failed to load last upload data', error);
+    }
+    return { announcementTitle: '', dateOfEvent: '' };
+  };
+
   return (
     <DisclosuresContext.Provider
       value={{
         disclosures: sortedDisclosures,
         addDisclosure,
+        getLastUploadData,
       }}
     >
       {children}

@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useMemo, useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import './ValidationHistory.css';
 import { formatDisplayDate } from './data/disclosures';
 import { useDisclosures } from './context/DisclosuresContext';
@@ -7,6 +7,7 @@ import { useDisclosures } from './context/DisclosuresContext';
 function ValidationHistory() {
   const { disclosures } = useDisclosures();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [statusFilter, setStatusFilter] = useState('all');
   const [scoreFilter, setScoreFilter] = useState('all');
   const [eventDateFrom, setEventDateFrom] = useState('');
@@ -17,6 +18,16 @@ function ValidationHistory() {
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
+
+  // Read scoreFilter from URL query params on mount and when URL changes
+  useEffect(() => {
+    const scoreFilterParam = searchParams.get('scoreFilter');
+    if (scoreFilterParam && ['80-plus', '50-79', 'below-50', 'all'].includes(scoreFilterParam)) {
+      setScoreFilter(scoreFilterParam);
+      // Show filters when coming from dashboard tile click
+      setFiltersVisible(true);
+    }
+  }, [searchParams]);
 
   const filteredHistory = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
@@ -88,6 +99,8 @@ function ValidationHistory() {
     setUploadedDateTo('');
     setSearchTerm('');
     setCurrentPage(1);
+    // Clear URL parameters
+    setSearchParams({});
   };
 
   const totalPages = Math.max(1, Math.ceil(filteredHistory.length / pageSize));
