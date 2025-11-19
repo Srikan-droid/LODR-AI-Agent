@@ -81,28 +81,19 @@ export const DisclosuresProvider = ({ children }) => {
       ruleResults: [],
     };
 
-    setDisclosures((prev) => [newEntry, ...prev]);
+    // Update status immediately (no delay)
+    const complianceScore = getRandomComplianceScore();
+    const completedEntry = {
+      ...newEntry,
+      fileStatus: 'Completed',
+      complianceScore,
+      complianceStatus: getComplianceStatus(complianceScore),
+      ruleResults: generateRuleResults(complianceScore),
+    };
 
-    const delayMs = (Math.floor(Math.random() * 6) + 5) * 1000; // 5-10 seconds
-    setTimeout(() => {
-      setDisclosures((current) =>
-        current.map((item) => {
-          if (item.id !== newEntry.id) {
-            return item;
-          }
-          const complianceScore = getRandomComplianceScore();
-          return {
-            ...item,
-            fileStatus: 'Completed',
-            complianceScore,
-            complianceStatus: getComplianceStatus(complianceScore),
-            ruleResults: generateRuleResults(complianceScore),
-          };
-        })
-      );
-    }, delayMs);
+    setDisclosures((prev) => [completedEntry, ...prev]);
 
-    return newEntry.id;
+    return { id: newEntry.id, complianceScore };
   };
 
   const sortedDisclosures = useMemo(

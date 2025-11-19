@@ -1,14 +1,12 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 import { formatDisplayDate } from './data/disclosures';
 import { useDisclosures } from './context/DisclosuresContext';
-import QuickUploadModal from './components/QuickUploadModal';
 
 function Dashboard() {
   const { disclosures } = useDisclosures();
   const navigate = useNavigate();
-  const [isQuickUploadOpen, setIsQuickUploadOpen] = useState(false);
 
   const latestDisclosures = useMemo(() => disclosures.slice(0, 5), [disclosures]);
 
@@ -75,7 +73,7 @@ function Dashboard() {
           </div>
         </div>
         <div className="quick-upload-container">
-          <button className="quick-upload-button" onClick={() => setIsQuickUploadOpen(true)}>
+          <button className="quick-upload-button" onClick={() => navigate('/upload')}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
               <polyline points="17 8 12 3 7 8"></polyline>
@@ -144,11 +142,6 @@ function Dashboard() {
           </table>
         </div>
       </div>
-
-      <QuickUploadModal 
-        isOpen={isQuickUploadOpen} 
-        onClose={() => setIsQuickUploadOpen(false)} 
-      />
     </div>
   );
 }
