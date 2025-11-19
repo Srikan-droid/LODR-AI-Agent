@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import './DisclosureDetailsModal.css';
 import { formatDisplayDate } from '../data/disclosures';
 import { generateRuleResults } from '../utils/ruleUtils';
+import { findRuleMetadata } from '../constants/validationRules';
 
 function DisclosureDetailsModal({ disclosure, onClose }) {
   const derivedRules = useMemo(() => {
@@ -24,6 +25,8 @@ function DisclosureDetailsModal({ disclosure, onClose }) {
   }
 
   const { announcementTitle, dateOfEvent, complianceScore, regulations = [] } = disclosure;
+  const scoreClass =
+    complianceScore != null ? `compliance-score ${getScoreIndicatorClass(complianceScore)}` : '';
 
   return (
     <div className="disclosure-modal-overlay" onClick={onClose}>
@@ -46,7 +49,9 @@ function DisclosureDetailsModal({ disclosure, onClose }) {
         <div className="disclosure-summary">
           <div>
             <span className="summary-label">Compliance Score</span>
-            <div className="summary-value">{complianceScore != null ? `${complianceScore}%` : '-'}</div>
+            <div className={`summary-value ${scoreClass}`}>
+              {complianceScore != null ? `${complianceScore}%` : '-'}
+            </div>
           </div>
           <div>
             <span className="summary-label">Regulations</span>
@@ -73,23 +78,32 @@ function DisclosureDetailsModal({ disclosure, onClose }) {
             <table className="rule-table">
               <thead>
                 <tr>
-                  <th>Rule</th>
+                  <th>Rule ID</th>
+                  <th>Rule Description</th>
                   <th>Extracted Evidence</th>
                   <th>Status</th>
                 </tr>
               </thead>
               <tbody>
-                {derivedRules.map((rule) => (
-                  <tr key={rule.id}>
-                    <td>{rule.name}</td>
-                    <td>{rule.detail || 'Context extracted from PDF submission'}</td>
-                    <td>
-                      <span className={`rule-status ${rule.status.toLowerCase()}`}>
-                        {rule.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
+                {derivedRules.map((rule) => {
+                  const ruleIdLabel = getRuleIdLabel(rule);
+                  return (
+                    <tr key={rule.id}>
+                      <td className="rule-id-cell">
+                        {ruleIdLabel ? <span className="rule-id-pill">{ruleIdLabel}</span> : '—'}
+                      </td>
+                      <td>
+                        <span className="rule-name">{rule.name}</span>
+                      </td>
+                      <td>{rule.detail || 'Context extracted from PDF submission'}</td>
+                      <td>
+                        <span className={`rule-status ${rule.status.toLowerCase()}`}>
+                          {rule.status}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           ) : (
@@ -103,3 +117,15 @@ function DisclosureDetailsModal({ disclosure, onClose }) {
 
 export default DisclosureDetailsModal;
 
+const getRuleIdLabel = (rule) => {
+  if (!rule) return '';
+  if (rule.ruleId) return rule.ruleId;
+  const metadata = findRuleMetadata(rule.ruleId || rule.name || rule.check);
+  return metadata?.id || '';
+};
+
+const getScoreIndicatorClass = (score) => {
+  if (score >= 80) return 'score-good';
+  if (score >= 50) return 'score-warning';
+  return 'score-poor';
+};

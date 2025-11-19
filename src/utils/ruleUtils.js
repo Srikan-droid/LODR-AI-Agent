@@ -1,4 +1,4 @@
-import { VALIDATION_RULES } from '../constants/validationRules';
+import { VALIDATION_RULES, findRuleMetadata, getRandomRuleMetadata } from '../constants/validationRules';
 
 const DETAIL_SNIPPETS = [
   'Timestamp extracted from PDF metadata',
@@ -15,6 +15,15 @@ const DETAIL_SNIPPETS = [
 
 const pickDetail = (index) => DETAIL_SNIPPETS[index % DETAIL_SNIPPETS.length];
 
+const buildRuleResult = (rule, index) => ({
+  id: `${rule.id}-${index}-${Math.random().toString(36).slice(2, 6)}`,
+  ruleId: rule.id,
+  name: rule.regulation,
+  check: rule.check,
+  status: Math.random() > 0.5 ? 'Pass' : 'Fail',
+  detail: pickDetail(index),
+});
+
 export const generateRuleResults = (score) => {
   if (score == null) {
     return [];
@@ -27,13 +36,20 @@ export const generateRuleResults = (score) => {
 
   const shuffled = [...VALIDATION_RULES].sort(() => Math.random() - 0.5);
   const selected = shuffled.slice(0, ruleCount);
-  const targetPasses = Math.max(1, Math.round((score / 100) * ruleCount));
-
-  return selected.map((rule, index) => ({
-    id: `${rule}-${index}`,
-    name: rule,
-    status: index < targetPasses ? 'Pass' : 'Fail',
-    detail: pickDetail(index),
-  }));
+  return selected.map((rule, index) => buildRuleResult(rule, index));
 };
+
+const enrichRuleResult = (rule) => {
+  if (!rule) return rule;
+  const metadata =
+    findRuleMetadata(rule.ruleId || rule.name || rule.check) || getRandomRuleMetadata();
+  return {
+    ...rule,
+    ruleId: rule.ruleId || metadata?.id || `CR_${Math.floor(Math.random() * 90 + 10)}`,
+    name: rule.name || metadata?.regulation || 'Regulation reference unavailable',
+    check: rule.check || metadata?.check || 'Validation criteria unavailable',
+  };
+};
+
+export const normalizeRuleResults = (ruleResults = []) => ruleResults.map(enrichRuleResult);
 

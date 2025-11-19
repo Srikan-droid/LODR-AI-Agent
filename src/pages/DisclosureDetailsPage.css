@@ -35,7 +35,7 @@
 .details-summary {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   gap: 16px;
   flex-wrap: wrap;
 }
@@ -49,6 +49,37 @@
 .summary-text p {
   margin: 4px 0;
   color: #475569;
+}
+
+.regulations-section {
+  margin-top: 12px;
+}
+
+.regulations-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+.regulations-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.regulation-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: #e0f2fe;
+  color: #0369a1;
+  font-weight: 600;
+  font-size: 0.85rem;
 }
 
 .status-badge {
@@ -82,6 +113,51 @@
 .status-badge.status-cancelled {
   background: rgba(107, 114, 128, 0.15);
   color: #4b5563;
+}
+
+.summary-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.file-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.file-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: #1e5f8b;
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.file-action-btn.secondary {
+  background: #0f172a;
+}
+
+.file-action-btn:hover {
+  background: #17486a;
+  transform: translateY(-1px);
+}
+
+.file-action-btn.secondary:hover {
+  background: #020617;
+}
+
+.file-action-placeholder {
+  font-size: 0.9rem;
+  color: #94a3b8;
+  font-weight: 600;
 }
 
 .summary-score {
@@ -168,6 +244,28 @@
 .rule-table th:last-child,
 .rule-table td:last-child {
   text-align: right;
+}
+
+.rule-name {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.rule-id-cell {
+  width: 110px;
+}
+
+.rule-id-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  background: #e0f2fe;
+  color: #0369a1;
 }
 
 .rule-status {
@@ -269,6 +367,15 @@
 
   .summary-score {
     text-align: left;
+  }
+
+  .summary-actions {
+    align-items: flex-start;
+  }
+
+  .file-actions {
+    width: 100%;
+    flex-wrap: wrap;
   }
 }
 

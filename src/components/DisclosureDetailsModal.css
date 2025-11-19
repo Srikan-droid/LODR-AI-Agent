@@ -83,6 +83,12 @@
   margin-bottom: 24px;
 }
 
+.disclosure-summary > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .summary-label {
   font-size: 0.85rem;
   text-transform: uppercase;
@@ -94,7 +100,23 @@
   font-size: 1.8rem;
   font-weight: 700;
   color: #0f172a;
-  margin-top: 6px;
+  line-height: 1;
+}
+
+.summary-value.compliance-score {
+  transition: color 0.2s ease;
+}
+
+.summary-value.compliance-score.score-good {
+  color: #4e9f3d;
+}
+
+.summary-value.compliance-score.score-warning {
+  color: #f59e0b;
+}
+
+.summary-value.compliance-score.score-poor {
+  color: #dc2626;
 }
 
 .regulation-pill-container {
@@ -162,6 +184,28 @@
   border-top: 1px solid #e2e8f0;
   color: #0f172a;
   font-size: 0.95rem;
+}
+
+.rule-name {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.rule-id-cell {
+  width: 100px;
+}
+
+.rule-id-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  background: #e0f2fe;
+  color: #0369a1;
 }
 
 .rule-status {

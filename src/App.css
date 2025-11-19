@@ -711,6 +711,7 @@
   background: white;
   word-wrap: break-word;
   height: auto;
+  text-align: left;
 }
 
 .regulations-table td:last-child {
@@ -756,7 +757,7 @@
 .source-cell {
   min-width: 120px;
   max-width: 150px;
-  text-align: center;
+  text-align: left;
   white-space: nowrap;
   padding: 20px 16px !important;
 }
@@ -858,7 +859,8 @@
 
 .validation-ol {
   margin: 0;
-  padding-left: 1.25rem;
+  padding-left: 0;
+  list-style: none;
 }
 
 /* Modal styles */
@@ -933,6 +935,25 @@
   line-height: 1.5;
   padding: 4px 0;
   margin-bottom: 4px;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.validation-rule-id {
+  font-weight: 700;
+  color: #1e5f8b;
+  font-size: 0.85rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #e8f1fb;
+  flex-shrink: 0;
+}
+
+.validation-rule-text {
+  display: inline;
+  flex: 1;
+  color: #333;
 }
 
 .no-validation {

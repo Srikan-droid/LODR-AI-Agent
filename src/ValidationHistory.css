@@ -282,10 +282,74 @@
   background: #f9f9f9;
 }
 
-.file-name-cell {
-  font-family: monospace;
-  font-size: 0.9rem;
-  color: #666;
+.announcement-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.info-tooltip {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid #1e5f8b;
+  color: #1e5f8b;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.info-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1f2937;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  white-space: normal;
+  max-width: 280px;
+  text-align: left;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+}
+
+.info-tooltip::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: transparent transparent #1f2937 transparent;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.info-tooltip:hover::after,
+.info-tooltip:focus-visible::after,
+.info-tooltip:hover::before,
+.info-tooltip:focus-visible::before {
+  opacity: 1;
+}
+
+.info-tooltip:focus-visible {
+  outline: 2px solid #1e5f8b;
+  outline-offset: 2px;
 }
 
 .status-badge {

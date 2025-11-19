@@ -47,6 +47,7 @@ const regulationsData = [
             text: 'Disclosure of New Rating(s) or Revision in Rating(s) assigned by a credit rating agency to any debt instrument, fixed deposit programme, or scheme/proposal involving fund mobilization (in India or abroad). Downward revision reasons must be intimated.',
             format: 'Disclosure to stock exchanges',
             validationCheck: 'announcement_date - rating_date <= 24H',
+            ruleId: 'CR_01',
             penalty: '',
             source: 'LODR.pdf, Master Circular - Very Imp_Reg 30_LODR_13July2023.pdf, Very Imp_Reg 30_LODR_13July2023.pdf'
           },
@@ -58,6 +59,7 @@ const regulationsData = [
             text: 'Disclose all credit ratings obtained by the entity for all its outstanding instruments on its functional website.',
             format: 'Disclosed on the entity website',
             validationCheck: 'announcement_date - website_date <= 24H',
+            ruleId: 'CR_02',
             penalty: 'Regulation 46 - Non-compliance results in Advisory/warning letter per instance of non-compliance per item; or ₹ 10,000 per instance for every additional advisory/warning letter exceeding four in a financial year.',
             source: 'LODR.pdf, SEBI_Non-compliance with certain provisions of the SEBI (Listing Obligations and Disclosure Requirements) Regulations, 2015 and the Standard Operating Procedure for suspension and revocation of trading of specified securities.pdf'
           },
@@ -69,6 +71,7 @@ const regulationsData = [
             text: 'Each rating obtained by the listed entity with respect to non-convertible securities shall be reviewed by a credit rating agency registered by the Board.',
             format: 'N/A',
             validationCheck: 'announcement_date present in last 12 months',
+            ruleId: 'CR_03',
             penalty: '',
             source: 'LODR.pdf'
           },
@@ -91,6 +94,7 @@ const regulationsData = [
             text: 'Maintain a functional website containing all credit ratings obtained by the entity for all its listed non-convertible securities.',
             format: 'Disclosed on the entity website',
             validationCheck: 'announcement_date - website_date <= 24H',
+            ruleId: 'CR_04',
             penalty: '',
             source: 'LODR.pdf'
           },
@@ -102,6 +106,7 @@ const regulationsData = [
             text: 'Every rating obtained with respect to securitised debt instruments shall be periodically reviewed by a credit rating agency registered by the Board.',
             format: 'N/A',
             validationCheck: 'announcement_date present in last 12 months',
+            ruleId: 'CR_05',
             penalty: '',
             source: 'LODR.pdf'
           },
@@ -135,6 +140,7 @@ const regulationsData = [
             text: 'Disclosure of revision in rating as a result of credit rating done periodically.',
             format: 'Disclosure to stock exchanges',
             validationCheck: 'announcement_date - rating_date <= 24H',
+            ruleId: 'CR_06',
             penalty: '',
             source: 'LODR.pdf'
           },
@@ -157,6 +163,7 @@ const regulationsData = [
             text: 'Disclosure of periodic rating obtained from credit rating agency or any revision in the rating or any expected revision in rating.',
             format: 'Disclosure to stock exchanges',
             validationCheck: 'announcement_date - rating_date <= 24H',
+            ruleId: 'CR_07',
             penalty: '',
             source: 'LODR.pdf'
           },
@@ -168,6 +175,7 @@ const regulationsData = [
             text: 'Disclosure of any proposal to change or change of credit rating agency or Valuer.',
             format: 'Disclosure to stock exchanges',
             validationCheck: 'announcement_date - rating_date <= 24H',
+            ruleId: 'CR_08',
             penalty: '',
             source: 'LODR.pdf'
           },
@@ -179,6 +187,7 @@ const regulationsData = [
             text: 'Intimate the recognised stock exchange(s) of the rating of the scheme whose units are listed and any changes in the rating thereof (wherever applicable).',
             format: 'Disclosure to stock exchanges',
             validationCheck: 'announcement_date - rating_date <= 24H',
+            ruleId: 'CR_09',
             penalty: '',
             source: 'LODR.pdf'
           },
@@ -190,6 +199,7 @@ const regulationsData = [
             text: 'Disclosure of any revision in the rating.',
             format: 'Disclosure to stock exchanges',
             validationCheck: 'announcement_date - rating_date <= 24H',
+            ruleId: 'CR_10',
             penalty: '',
             source: 'LODR.pdf'
           },
@@ -200,7 +210,9 @@ const regulationsData = [
             requirement: 'Annual Report Disclosure',
             text: 'Disclosure of list of all credit ratings obtained by the entity along with any revisions thereto during the relevant financial year, for all debt instruments, fixed deposit programmes, or schemes involving mobilization of funds (in India or abroad).',
             format: 'Disclosure in Annual report',
-            validationCheck: 'Is annual_report = yes, Within annual_report, is Corp_gov_rep = yes, Within Corp_gov_rep, is Credit_rating = Yes',
+            validationCheck:
+              'Is annual_report = yes\nWithin annual_report, is Corp_gov_rep = yes\nWithin Corp_gov_rep, is Credit_rating = Yes',
+            ruleId: 'CR_11',
             penalty: 'Regulation 27(2) - Non submission of the Corporate governance compliance report within the period provided under this regulation: Rs 2000 per day',
             source: 'LODR.pdf'
           }
@@ -702,9 +714,15 @@ function MainContent({ onLogout }) {
                                     )}
                                     <ol className="validation-ol">
                                       {reg.validationCheck.split('\n').map((line, idx) => {
-                                        const cleaned = line.replace(/^\s*\d+\.\s*/, '');
+                                        const cleaned = line.replace(/^\s*\d+\.\s*/, '').trim();
+                                        if (!cleaned) {
+                                          return null;
+                                        }
                                         return (
-                                          <li key={idx} className="validation-line">{cleaned}</li>
+                                          <li key={idx} className="validation-line">
+                                            {reg.ruleId && <span className="validation-rule-id">{reg.ruleId}</span>}
+                                            <span className="validation-rule-text">{cleaned}</span>
+                                          </li>
                                         );
                                       })}
                                     </ol>

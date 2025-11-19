@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { initialDisclosures, REGULATION_OPTIONS } from '../data/disclosures';
-import { generateRuleResults } from '../utils/ruleUtils';
+import { generateRuleResults, normalizeRuleResults } from '../utils/ruleUtils';
 
 const STORAGE_KEY = 'lodr_disclosures';
 const LAST_UPLOAD_KEY = 'lodr_last_upload';
@@ -10,15 +10,16 @@ const DisclosuresContext = createContext();
 const decorateEntry = (entry) => {
   if (entry.fileStatus === 'Completed' && entry.complianceScore != null) {
     const hasRules = Array.isArray(entry.ruleResults) && entry.ruleResults.length > 0;
+    const rules = hasRules ? entry.ruleResults : generateRuleResults(entry.complianceScore);
     return {
       ...entry,
-      ruleResults: hasRules ? entry.ruleResults : generateRuleResults(entry.complianceScore),
+      ruleResults: normalizeRuleResults(rules),
     };
   }
 
   return {
     ...entry,
-    ruleResults: entry.ruleResults || [],
+    ruleResults: normalizeRuleResults(entry.ruleResults || []),
   };
 };
 

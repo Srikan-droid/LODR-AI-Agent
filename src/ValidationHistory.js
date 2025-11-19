@@ -18,6 +18,13 @@ function ValidationHistory() {
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
+  const requestIds = useMemo(() => {
+    const map = {};
+    disclosures.forEach((item) => {
+      map[item.id] = item.fileStatus !== 'Pending' ? generateRequestId() : null;
+    });
+    return map;
+  }, [disclosures]);
 
   // Read scoreFilter from URL query params on mount and when URL changes
   useEffect(() => {
@@ -229,8 +236,7 @@ function ValidationHistory() {
               <th>Announcement Title</th>
               <th>Date of Event</th>
               <th>Regulations</th>
-              <th>File Name</th>
-              <th>Uploaded Date</th>
+              <th>Request ID</th>
               <th>Status</th>
               <th>Compliance Score</th>
             </tr>
@@ -241,13 +247,25 @@ function ValidationHistory() {
               return (
                 <tr key={item.id}>
                   <td>
-                    <button
-                      className={`disclosure-link ${!isClickable ? 'disabled' : ''}`}
-                      onClick={() => isClickable && navigate(`/validation/${item.id}`, { state: { from: 'validation' } })}
-                      disabled={!isClickable}
-                    >
-                      {item.announcementTitle}
-                    </button>
+                    <div className="announcement-cell">
+                      <button
+                        className={`disclosure-link ${!isClickable ? 'disabled' : ''}`}
+                        onClick={() =>
+                          isClickable && navigate(`/validation/${item.id}`, { state: { from: 'validation' } })
+                        }
+                        disabled={!isClickable}
+                      >
+                        {item.announcementTitle}
+                      </button>
+                      <button
+                        type="button"
+                        className="info-tooltip"
+                        aria-label={`File name ${item.fileName || 'not available'}, uploaded ${item.uploadedDate ? formatDisplayDate(item.uploadedDate) : 'date not available'}`}
+                        data-tooltip={`File: ${item.fileName || 'Not available'} • Uploaded: ${item.uploadedDate ? formatDisplayDate(item.uploadedDate) : 'Not available'}`}
+                      >
+                        i
+                      </button>
+                    </div>
                   </td>
                   <td>{formatDisplayDate(item.dateOfEvent)}</td>
                   <td>
@@ -257,8 +275,7 @@ function ValidationHistory() {
                       </span>
                     ))}
                   </td>
-                  <td className="file-name-cell">{item.fileName}</td>
-                  <td>{formatDisplayDate(item.uploadedDate)}</td>
+                  <td>{requestIds[item.id] || '-'}</td>
                   <td>
                     <span className={`status-badge ${getStatusClass(item.fileStatus)}`}>
                       {item.fileStatus}
@@ -328,6 +345,15 @@ const getScoreIndicatorClass = (score) => {
   if (score >= 80) return 'score-good';
   if (score >= 50) return 'score-warning';
   return 'score-poor';
+};
+
+const generateRequestId = () => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = '';
+  for (let i = 0; i < 8; i += 1) {
+    result += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return result;
 };
 
 export default ValidationHistory;

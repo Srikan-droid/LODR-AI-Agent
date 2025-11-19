@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useDisclosures } from '../context/DisclosuresContext';
 import { formatDisplayDate } from '../data/disclosures';
 import { generateRuleResults } from '../utils/ruleUtils';
+import { findRuleMetadata } from '../constants/validationRules';
 import DisclosureDetailsModal from '../components/DisclosureDetailsModal';
 import './DisclosureDetailsPage.css';
 
@@ -51,7 +52,9 @@ function DisclosureDetailsPage() {
     );
   }
 
-  const { announcementTitle, dateOfEvent, complianceScore, fileStatus } = disclosure;
+  const { announcementTitle, dateOfEvent, complianceScore, fileStatus, fileName, regulations = [] } = disclosure;
+  const fileUrl = fileName ? `/uploads/${fileName}` : null;
+  const isPdfFile = fileName?.toLowerCase().endsWith('.pdf');
 
   const handleBack = () => {
     if (location.state?.from === 'dashboard') {
@@ -79,16 +82,53 @@ function DisclosureDetailsPage() {
             <p>
               Status: <span className={`status-badge ${getStatusClass(fileStatus)}`}>{fileStatus}</span>
             </p>
-          </div>
-          <div className="summary-score">
-            <span>Compliance Score</span>
-            {complianceScore != null ? (
-              <strong className={`compliance-score ${getScoreIndicatorClass(complianceScore)}`}>
-                {complianceScore}%
-              </strong>
-            ) : (
-              <strong>-</strong>
+            {regulations.length > 0 && (
+              <div className="regulations-section">
+                <span className="regulations-label">Regulations</span>
+                <div className="regulations-list">
+                  {regulations.map((reg) => (
+                    <span key={reg} className="regulation-pill">
+                      {reg}
+                    </span>
+                  ))}
+                </div>
+              </div>
             )}
+          </div>
+          <div className="summary-actions">
+            <div className="file-actions">
+              {isPdfFile && fileUrl ? (
+                <>
+                  <a
+                    className="file-action-btn"
+                    href={fileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    View PDF
+                  </a>
+                  <a
+                    className="file-action-btn secondary"
+                    href={fileUrl}
+                    download={fileName}
+                  >
+                    Download
+                  </a>
+                </>
+              ) : (
+                <span className="file-action-placeholder">Document not available</span>
+              )}
+            </div>
+            <div className="summary-score">
+              <span>Compliance Score</span>
+              {complianceScore != null ? (
+                <strong className={`compliance-score ${getScoreIndicatorClass(complianceScore)}`}>
+                  {complianceScore}%
+                </strong>
+              ) : (
+                <strong>-</strong>
+              )}
+            </div>
           </div>
         </div>
       </section>
@@ -108,19 +148,28 @@ function DisclosureDetailsPage() {
             <table className="rule-table">
               <thead>
                 <tr>
-                  <th>Rule</th>
+                  <th>Rule ID</th>
+                  <th>Rule Description</th>
                   <th>Status</th>
                 </tr>
               </thead>
               <tbody>
-                {derivedRules.map((rule) => (
-                  <tr key={rule.id}>
-                    <td>{rule.name}</td>
-                    <td>
-                      <span className={`rule-status ${rule.status?.toLowerCase()}`}>{rule.status}</span>
-                    </td>
-                  </tr>
-                ))}
+                {derivedRules.map((rule) => {
+                  const ruleIdLabel = getRuleIdLabel(rule);
+                  return (
+                    <tr key={rule.id}>
+                      <td className="rule-id-cell">
+                        {ruleIdLabel ? <span className="rule-id-pill">{ruleIdLabel}</span> : '—'}
+                      </td>
+                      <td>
+                        <span className="rule-name">{rule.name || 'Rule description unavailable'}</span>
+                      </td>
+                      <td>
+                        <span className={`rule-status ${rule.status?.toLowerCase()}`}>{rule.status}</span>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           ) : (
@@ -193,6 +242,13 @@ const generateAIRecommendation = (ruleName) => {
   };
 
   return recommendations[ruleName] || 'Review the validation rule and ensure all requirements are met. Consult the regulatory guidelines for specific compliance requirements related to this rule.';
+};
+
+const getRuleIdLabel = (rule) => {
+  if (!rule) return '';
+  if (rule.ruleId) return rule.ruleId;
+  const metadata = findRuleMetadata(rule.ruleId || rule.name || rule.check);
+  return metadata?.id || '';
 };
 
 export default DisclosureDetailsPage;
