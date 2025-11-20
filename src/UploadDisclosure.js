@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import './UploadDisclosure.css';
 import { useDisclosures } from './context/DisclosuresContext';
 
+const CHAT_HISTORY_KEY = 'ai_agent_chat_history';
+
 function UploadDisclosure() {
   const navigate = useNavigate();
   const { addDisclosure, disclosures } = useDisclosures();
@@ -16,14 +18,78 @@ function UploadDisclosure() {
   const [showFormFields, setShowFormFields] = useState(false);
   const [isInteractMode, setIsInteractMode] = useState(false);
   const [questionInput, setQuestionInput] = useState('');
-  const [chatMessages, setChatMessages] = useState([]);
+  // Initialize chatMessages from localStorage using lazy initialization
+  const [chatMessages, setChatMessages] = useState(() => {
+    try {
+      const storedHistory = localStorage.getItem(CHAT_HISTORY_KEY);
+      if (storedHistory) {
+        const parsedHistory = JSON.parse(storedHistory);
+        if (Array.isArray(parsedHistory) && parsedHistory.length > 0) {
+          return parsedHistory;
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load chat history on init', error);
+    }
+    return [];
+  });
   const [disclosureId, setDisclosureId] = useState(null);
   const [validationComplete, setValidationComplete] = useState(false);
   const [progressMessageId, setProgressMessageId] = useState(null);
   const scoreSetRef = useRef(false);
+  const hasLoadedHistoryRef = useRef(true); // Set to true since we load via lazy init
+  const isInitialMountRef = useRef(true);
   const fileInputRef = useRef(null);
   const chatContainerRef = useRef(null);
   const questionInputRef = useRef(null);
+
+  // Restore state from chat history on mount
+  useEffect(() => {
+    if (chatMessages.length === 0) return;
+    
+    // Check if validation is complete
+    const hasValidationComplete = chatMessages.some(msg => 
+      msg.isProgress && 
+      msg.content && 
+      msg.content.includes('Validation completed successfully')
+    );
+    
+    if (hasValidationComplete) {
+      setValidationComplete(true);
+      // Try to extract disclosureId from messages
+      const progressMsg = chatMessages.find(msg => msg.isProgress && msg.viewReportPath);
+      if (progressMsg && progressMsg.viewReportPath) {
+        const match = progressMsg.viewReportPath.match(/\/validation\/(.+)/);
+        if (match) {
+          setDisclosureId(match[1]);
+        }
+      }
+    }
+    
+    // Check if we're in interact mode (has user questions)
+    const hasUserQuestions = chatMessages.some(msg => msg.type === 'user');
+    if (hasUserQuestions && !hasValidationComplete) {
+      setIsInteractMode(true);
+    }
+  }, []); // Run only once on mount
+
+  // Persist chat history whenever it changes (skip initial mount to avoid overwriting)
+  useEffect(() => {
+    // Skip persistence on initial mount since we just loaded from localStorage
+    if (isInitialMountRef.current) {
+      isInitialMountRef.current = false;
+      return;
+    }
+    
+    // Only persist if we have messages (don't save empty arrays)
+    if (chatMessages.length > 0) {
+      try {
+        localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(chatMessages));
+      } catch (error) {
+        console.error('Failed to persist chat history', error);
+      }
+    }
+  }, [chatMessages]);
 
   // Watch for compliance score updates - only run once when score becomes available
   useEffect(() => {
@@ -468,222 +534,229 @@ function UploadDisclosure() {
     }, 1000);
   };
 
+  // Helper function to render a single chat message
+  const renderMessage = (msg, idx) => {
+    const trimmedLine = (line) => line.trim();
+    const isFileDetail = (line) => line.startsWith('File:') || line.startsWith('Title:') || line.startsWith('Event Date:');
+    const isProgress = (line) => line.startsWith('Progress:');
+    const hasDone = (line) => line.includes('DONE');
+    const isEmpty = (line) => line.trim() === '';
+    const isComplianceScore = (line) => line.startsWith('Compliance Score:');
+    const isViewReport = (line) => line.startsWith('View Report');
+
+    return (
+      <div key={idx} className={`chat-message ${msg.type === 'user' ? 'user-message' : 'system-message'}`}>
+        {msg.type === 'system' && <div className="message-avatar">AI</div>}
+        <div className="message-content">
+          {msg.isLink ? (
+            <button
+              className="view-report-link"
+              onClick={() => navigate(msg.linkPath)}
+            >
+              {msg.content}
+            </button>
+          ) : msg.isProgress ? (
+            <div className="progress-steps-container">
+              {msg.content.split('\n').map((line, lineIdx) => {
+                const trimmed = trimmedLine(line);
+                return (
+                  <div key={lineIdx} className={`progress-step-line ${isFileDetail(trimmed) ? 'file-detail' : ''} ${isProgress(trimmed) ? 'progress-line' : ''} ${hasDone(line) ? 'step-done' : ''} ${isEmpty(trimmed) ? 'empty-line' : ''} ${isComplianceScore(trimmed) ? 'compliance-score-line' : ''} ${isViewReport(trimmed) ? 'view-report-line' : ''}`}>
+                    {isFileDetail(trimmed) ? (
+                      <span>{line}</span>
+                    ) : isProgress(trimmed) ? (
+                      <div className="progress-line-container">
+                        <span className="progress-text">{line}</span>
+                        <div className="progress-bar-wrapper">
+                          <div className="progress-bar" style={{ width: `${msg.progressPercentage || 0}%` }}></div>
+                        </div>
+                      </div>
+                    ) : isComplianceScore(trimmed) ? (() => {
+                      const scoreText = trimmed.replace('Compliance Score: ', '').replace('%', '').trim();
+                      const score = msg.complianceScore != null ? msg.complianceScore : (scoreText ? parseInt(scoreText, 10) : null);
+                      const scoreClass = score != null && !isNaN(score) ? getScoreIndicatorClass(score) : '';
+                      return (
+                        <span className={`compliance-score-display ${scoreClass}`}>
+                          {scoreClass && <span className={`score-indicator ${scoreClass}`} />}
+                          <span className="compliance-score-text">{trimmed}</span>
+                        </span>
+                      );
+                    })() : isViewReport(trimmed) ? (
+                      <button
+                        className="view-report-link-inline"
+                        onClick={() => {
+                          const path = msg.viewReportPath || (disclosureId ? `/validation/${disclosureId}` : '/validation');
+                          navigate(path);
+                        }}
+                      >
+                        {trimmed}
+                      </button>
+                    ) : hasDone(line) ? (
+                      <span>
+                        {line.split('DONE').map((part, partIdx, arr) => (
+                          <span key={partIdx}>
+                            {part}
+                            {partIdx < arr.length - 1 && <span className="done-text">DONE</span>}
+                          </span>
+                        ))}
+                      </span>
+                    ) : (
+                      <span>{line}</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p>{msg.content}</p>
+          )}
+        </div>
+        {msg.type === 'user' && <div className="message-avatar user-avatar">You</div>}
+      </div>
+    );
+  };
 
   return (
     <div className="chat-upload-container">
       <h1 className="chat-page-title">Upload Disclosure</h1>
       
       <div className="chat-container" ref={chatContainerRef}>
-        {!selectedFile && (
+        {/* Show upload area only if no chat history */}
+        {!selectedFile && chatMessages.length === 0 && (
           <div className="chat-message system-message">
             <div className="message-avatar">AI</div>
             <div className="message-content">
               <p>Welcome! Please upload a PDF document to get started.</p>
               <div
                 className={`file-upload-area ${isDragging ? 'dragging' : ''}`}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          onClick={handleUploadClick}
-        >
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileInputChange}
-            accept=".pdf"
-            style={{ display: 'none' }}
-          />
-          <div className="upload-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="17 8 12 3 7 8"></polyline>
-              <line x1="12" y1="3" x2="12" y2="15"></line>
-            </svg>
-          </div>
-          <p className="upload-instruction">
-            Drag and drop a file here or click to upload
-          </p>
-          <p className="upload-formats">(.PDF files only)</p>
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={handleUploadClick}
+              >
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileInputChange}
+                  accept=".pdf"
+                  style={{ display: 'none' }}
+                />
+                <div className="upload-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                  </svg>
+                </div>
+                <p className="upload-instruction">
+                  Drag and drop a file here or click to upload
+                </p>
+                <p className="upload-formats">(.PDF files only)</p>
               </div>
             </div>
           </div>
         )}
 
-        {selectedFile && !showFormFields && !isInteractMode && !validationComplete && (
+        {/* Render all chat messages once */}
+        {chatMessages.length > 0 && (
           <>
-            {chatMessages.map((msg, idx) => (
-              <div key={idx} className={`chat-message ${msg.type === 'user' ? 'user-message' : 'system-message'}`}>
-                {msg.type === 'system' && <div className="message-avatar">AI</div>}
+            {chatMessages.map((msg, idx) => renderMessage(msg, idx))}
+            
+            {/* Show upload area only if the last message is the upload prompt */}
+            {chatMessages[chatMessages.length - 1]?.content === 'Please upload a new PDF document to continue.' && (
+              <div className="chat-message system-message">
+                <div className="message-avatar">AI</div>
                 <div className="message-content">
-                  {msg.isLink ? (
-                    <button
-                      className="view-report-link"
-                      onClick={() => navigate(msg.linkPath)}
-                    >
-                      {msg.content}
-                    </button>
-                  ) : msg.isProgress ? (
-                    <div className="progress-steps-container">
-                      {msg.content.split('\n').map((line, idx) => {
-                        const trimmedLine = line.trim();
-                        const isFileDetail = trimmedLine.startsWith('File:') || trimmedLine.startsWith('Title:') || trimmedLine.startsWith('Event Date:');
-                        const isProgress = trimmedLine.startsWith('Progress:');
-                        const hasDone = line.includes('DONE');
-                        const isEmpty = trimmedLine === '';
-                        const isComplianceScore = trimmedLine.startsWith('Compliance Score:');
-                        const isViewReport = trimmedLine.startsWith('View Report');
-                        return (
-                          <div key={idx} className={`progress-step-line ${isFileDetail ? 'file-detail' : ''} ${isProgress ? 'progress-line' : ''} ${hasDone ? 'step-done' : ''} ${isEmpty ? 'empty-line' : ''} ${isComplianceScore ? 'compliance-score-line' : ''} ${isViewReport ? 'view-report-line' : ''}`}>
-                            {isFileDetail ? (
-                              <span>{line}</span>
-                            ) : isProgress ? (
-                              <div className="progress-line-container">
-                                <span className="progress-text">{line}</span>
-                                <div className="progress-bar-wrapper">
-                                  <div className="progress-bar" style={{ width: `${msg.progressPercentage || 0}%` }}></div>
-                                </div>
-                              </div>
-                            ) : isComplianceScore ? (() => {
-                              // Extract score from line or use msg.complianceScore
-                              const trimmedLine = line.trim();
-                              const scoreText = trimmedLine.replace('Compliance Score: ', '').replace('%', '').trim();
-                              const score = msg.complianceScore != null ? msg.complianceScore : (scoreText ? parseInt(scoreText, 10) : null);
-                              const scoreClass = score != null && !isNaN(score) ? getScoreIndicatorClass(score) : '';
-                              return (
-                                <span className={`compliance-score-display ${scoreClass}`}>
-                                  {scoreClass && <span className={`score-indicator ${scoreClass}`} />}
-                                  <span className="compliance-score-text">{trimmedLine}</span>
-                                </span>
-                              );
-                            })(                            ) : isViewReport ? (
-                              <button
-                                className="view-report-link-inline"
-                                onClick={() => {
-                                  const path = msg.viewReportPath || (disclosureId ? `/validation/${disclosureId}` : '/validation');
-                                  navigate(path);
-                                }}
-                              >
-                                {trimmedLine}
-                              </button>
-                            ) : hasDone ? (
-                              <span>
-                                {line.split('DONE').map((part, partIdx, arr) => (
-                                  <span key={partIdx}>
-                                    {part}
-                                    {partIdx < arr.length - 1 && <span className="done-text">DONE</span>}
-                                  </span>
-                                ))}
-                              </span>
-                            ) : (
-                              <span>{line}</span>
-                            )}
-                          </div>
-                        );
-                      })}
+                  <div
+                    className={`file-upload-area ${isDragging ? 'dragging' : ''}`}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    onClick={handleUploadClick}
+                  >
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileInputChange}
+                      accept=".pdf"
+                      style={{ display: 'none' }}
+                    />
+                    <div className="upload-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                      </svg>
                     </div>
-                  ) : (
-                    <p>{msg.content}</p>
-                  )}
+                    <p className="upload-instruction">
+                      Drag and drop a file here or click to upload
+                    </p>
+                    <p className="upload-formats">(.PDF files only)</p>
+                  </div>
                 </div>
-                {msg.type === 'user' && <div className="message-avatar user-avatar">You</div>}
               </div>
-            ))}
-            {!isValidating && (
+            )}
+
+            {/* Action areas based on state */}
+            {showFormFields && !isValidating && (
+              <>
+                <div className="chat-message system-message">
+                  <div className="message-avatar">AI</div>
+                  <div className="message-content form-content">
+                    <div className="form-fields">
+                      <div className="form-field">
+                        <label htmlFor="announcement-title" className="field-label">
+                          Announcement Title <span className="required">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          id="announcement-title"
+                          className="form-input"
+                          value={announcementTitle}
+                          onChange={(e) => setAnnouncementTitle(e.target.value)}
+                          placeholder="Enter announcement title"
+                          required
+                        />
+                      </div>
+                      <div className="form-field">
+                        <label htmlFor="date-of-event" className="field-label">
+                          Date of Event <span className="required">*</span>
+                        </label>
+                        <input
+                          type="date"
+                          id="date-of-event"
+                          className="form-input"
+                          value={dateOfEvent}
+                          onChange={(e) => setDateOfEvent(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
+                    <button
+                      className="run-validation-button"
+                      onClick={handleRunValidation}
+                      disabled={isValidating}
+                    >
+                      {isValidating ? 'Processing...' : 'Submit for Validation'}
+                    </button>
+                  </div>
+                </div>
+                <div className="action-buttons-container">
+                  <button className="action-button upload-another-button" onClick={handleUploadAnotherPDF}>
+                    Upload Another PDF
+                  </button>
+                </div>
+              </>
+            )}
+
+            {validationComplete && (
               <div className="action-buttons-container">
-                <button className="action-button interact-button" onClick={handleInteractWithPDF}>
-                  Interact with PDF
-                </button>
-                <button className="action-button compliance-button" onClick={handleGetComplianceScore}>
-                  Get Compliance Score
-                </button>
                 <button className="action-button upload-another-button" onClick={handleUploadAnotherPDF}>
                   Upload Another PDF
                 </button>
               </div>
             )}
-          </>
-        )}
 
-        {selectedFile && isInteractMode && !validationComplete && (
-          <>
-            {chatMessages.map((msg, idx) => (
-              <div key={idx} className={`chat-message ${msg.type === 'user' ? 'user-message' : 'system-message'}`}>
-                {msg.type === 'system' && <div className="message-avatar">AI</div>}
-                <div className="message-content">
-                  {msg.isLink ? (
-                    <button
-                      className="view-report-link"
-                      onClick={() => navigate(msg.linkPath)}
-                    >
-                      {msg.content}
-                    </button>
-                  ) : msg.isProgress ? (
-                    <div className="progress-steps-container">
-                      {msg.content.split('\n').map((line, idx) => {
-                        const trimmedLine = line.trim();
-                        const isFileDetail = trimmedLine.startsWith('File:') || trimmedLine.startsWith('Title:') || trimmedLine.startsWith('Event Date:');
-                        const isProgress = trimmedLine.startsWith('Progress:');
-                        const hasDone = line.includes('DONE');
-                        const isEmpty = trimmedLine === '';
-                        const isComplianceScore = trimmedLine.startsWith('Compliance Score:');
-                        const isViewReport = trimmedLine.startsWith('View Report');
-                        return (
-                          <div key={idx} className={`progress-step-line ${isFileDetail ? 'file-detail' : ''} ${isProgress ? 'progress-line' : ''} ${hasDone ? 'step-done' : ''} ${isEmpty ? 'empty-line' : ''} ${isComplianceScore ? 'compliance-score-line' : ''} ${isViewReport ? 'view-report-line' : ''}`}>
-                            {isFileDetail ? (
-                              <span>{line}</span>
-                            ) : isProgress ? (
-                              <div className="progress-line-container">
-                                <span className="progress-text">{line}</span>
-                                <div className="progress-bar-wrapper">
-                                  <div className="progress-bar" style={{ width: `${msg.progressPercentage || 0}%` }}></div>
-                                </div>
-                              </div>
-                            ) : isComplianceScore ? (() => {
-                              // Extract score from line or use msg.complianceScore
-                              const trimmedLine = line.trim();
-                              const scoreText = trimmedLine.replace('Compliance Score: ', '').replace('%', '').trim();
-                              const score = msg.complianceScore != null ? msg.complianceScore : (scoreText ? parseInt(scoreText, 10) : null);
-                              const scoreClass = score != null && !isNaN(score) ? getScoreIndicatorClass(score) : '';
-                              return (
-                                <span className={`compliance-score-display ${scoreClass}`}>
-                                  {scoreClass && <span className={`score-indicator ${scoreClass}`} />}
-                                  <span className="compliance-score-text">{trimmedLine}</span>
-                                </span>
-                              );
-                            })(                            ) : isViewReport ? (
-                              <button
-                                className="view-report-link-inline"
-                                onClick={() => {
-                                  const path = msg.viewReportPath || (disclosureId ? `/validation/${disclosureId}` : '/validation');
-                                  navigate(path);
-                                }}
-                              >
-                                {trimmedLine}
-                              </button>
-                            ) : hasDone ? (
-                              <span>
-                                {line.split('DONE').map((part, partIdx, arr) => (
-                                  <span key={partIdx}>
-                                    {part}
-                                    {partIdx < arr.length - 1 && <span className="done-text">DONE</span>}
-                                  </span>
-                                ))}
-                              </span>
-                            ) : (
-                              <span>{line}</span>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <p>{msg.content}</p>
-          )}
-        </div>
-                {msg.type === 'user' && <div className="message-avatar user-avatar">You</div>}
-              </div>
-            ))}
-            {!isValidating && (
+            {isInteractMode && !validationComplete && !showFormFields && (
               <>
                 <div className="chat-input-container">
                   <form onSubmit={handleQuestionSubmit} className="question-form">
@@ -713,222 +786,20 @@ function UploadDisclosure() {
                 </div>
               </>
             )}
-          </>
-        )}
 
-        {showFormFields && (
-          <>
-            {chatMessages.map((msg, idx) => (
-              <div key={idx} className={`chat-message ${msg.type === 'user' ? 'user-message' : 'system-message'}`}>
-                {msg.type === 'system' && <div className="message-avatar">AI</div>}
-                <div className="message-content">
-                  {msg.isLink ? (
-                    <button
-                      className="view-report-link"
-                      onClick={() => navigate(msg.linkPath)}
-                    >
-                      {msg.content}
-                    </button>
-                  ) : msg.isProgress ? (
-                    <div className="progress-steps-container">
-                      {msg.content.split('\n').map((line, idx) => {
-                        const trimmedLine = line.trim();
-                        const isFileDetail = trimmedLine.startsWith('File:') || trimmedLine.startsWith('Title:') || trimmedLine.startsWith('Event Date:');
-                        const isProgress = trimmedLine.startsWith('Progress:');
-                        const hasDone = line.includes('DONE');
-                        const isEmpty = trimmedLine === '';
-                        const isComplianceScore = trimmedLine.startsWith('Compliance Score:');
-                        const isViewReport = trimmedLine.startsWith('View Report');
-                        return (
-                          <div key={idx} className={`progress-step-line ${isFileDetail ? 'file-detail' : ''} ${isProgress ? 'progress-line' : ''} ${hasDone ? 'step-done' : ''} ${isEmpty ? 'empty-line' : ''} ${isComplianceScore ? 'compliance-score-line' : ''} ${isViewReport ? 'view-report-line' : ''}`}>
-                            {isFileDetail ? (
-                              <span>{line}</span>
-                            ) : isProgress ? (
-                              <div className="progress-line-container">
-                                <span className="progress-text">{line}</span>
-                                <div className="progress-bar-wrapper">
-                                  <div className="progress-bar" style={{ width: `${msg.progressPercentage || 0}%` }}></div>
-                                </div>
-                              </div>
-                            ) : isComplianceScore ? (() => {
-                              // Extract score from line or use msg.complianceScore
-                              const trimmedLine = line.trim();
-                              const scoreText = trimmedLine.replace('Compliance Score: ', '').replace('%', '').trim();
-                              const score = msg.complianceScore != null ? msg.complianceScore : (scoreText ? parseInt(scoreText, 10) : null);
-                              const scoreClass = score != null && !isNaN(score) ? getScoreIndicatorClass(score) : '';
-                              return (
-                                <span className={`compliance-score-display ${scoreClass}`}>
-                                  {scoreClass && <span className={`score-indicator ${scoreClass}`} />}
-                                  <span className="compliance-score-text">{trimmedLine}</span>
-                                </span>
-                              );
-                            })(                            ) : isViewReport ? (
-                              <button
-                                className="view-report-link-inline"
-                                onClick={() => {
-                                  const path = msg.viewReportPath || (disclosureId ? `/validation/${disclosureId}` : '/validation');
-                                  navigate(path);
-                                }}
-                              >
-                                {trimmedLine}
-                              </button>
-                            ) : hasDone ? (
-                              <span>
-                                {line.split('DONE').map((part, partIdx, arr) => (
-                                  <span key={partIdx}>
-                                    {part}
-                                    {partIdx < arr.length - 1 && <span className="done-text">DONE</span>}
-                                  </span>
-                                ))}
-                              </span>
-                            ) : (
-                              <span>{line}</span>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <p>{msg.content}</p>
-                  )}
-                </div>
-                {msg.type === 'user' && <div className="message-avatar user-avatar">You</div>}
-              </div>
-            ))}
-            {!isValidating && (
-              <div className="chat-message system-message">
-                <div className="message-avatar">AI</div>
-                <div className="message-content form-content">
-        <div className="form-fields">
-          <div className="form-field">
-            <label htmlFor="announcement-title" className="field-label">
-              Announcement Title <span className="required">*</span>
-            </label>
-            <input
-              type="text"
-              id="announcement-title"
-              className="form-input"
-              value={announcementTitle}
-              onChange={(e) => setAnnouncementTitle(e.target.value)}
-              placeholder="Enter announcement title"
-              required
-            />
-          </div>
-
-          <div className="form-field">
-            <label htmlFor="date-of-event" className="field-label">
-              Date of Event <span className="required">*</span>
-            </label>
-            <input
-              type="date"
-              id="date-of-event"
-              className="form-input"
-              value={dateOfEvent}
-              onChange={(e) => setDateOfEvent(e.target.value)}
-              required
-            />
-          </div>
-        </div>
-          <button
-            className="run-validation-button"
-            onClick={handleRunValidation}
-            disabled={isValidating}
-          >
-                    {isValidating ? 'Processing...' : 'Submit for Validation'}
-          </button>
-        </div>
+            {selectedFile && !showFormFields && !isInteractMode && !validationComplete && !isValidating && (
+              <div className="action-buttons-container">
+                <button className="action-button interact-button" onClick={handleInteractWithPDF}>
+                  Interact with PDF
+                </button>
+                <button className="action-button compliance-button" onClick={handleGetComplianceScore}>
+                  Get Compliance Score
+                </button>
               </div>
             )}
           </>
         )}
-
-        {validationComplete && (
-          <>
-            {chatMessages.map((msg, idx) => (
-              <div key={idx} className={`chat-message ${msg.type === 'user' ? 'user-message' : 'system-message'}`}>
-                {msg.type === 'system' && <div className="message-avatar">AI</div>}
-                <div className="message-content">
-                  {msg.isLink ? (
-                    <button
-                      className="view-report-link"
-                      onClick={() => navigate(msg.linkPath)}
-                    >
-                      {msg.content}
-              </button>
-                  ) : msg.isProgress ? (
-                    <div className="progress-steps-container">
-                      {msg.content.split('\n').map((line, idx) => {
-                        const trimmedLine = line.trim();
-                        const isFileDetail = trimmedLine.startsWith('File:') || trimmedLine.startsWith('Title:') || trimmedLine.startsWith('Event Date:');
-                        const isProgress = trimmedLine.startsWith('Progress:');
-                        const hasDone = line.includes('DONE');
-                        const isEmpty = trimmedLine === '';
-                        const isComplianceScore = trimmedLine.startsWith('Compliance Score:');
-                        const isViewReport = trimmedLine.startsWith('View Report');
-                        return (
-                          <div key={idx} className={`progress-step-line ${isFileDetail ? 'file-detail' : ''} ${isProgress ? 'progress-line' : ''} ${hasDone ? 'step-done' : ''} ${isEmpty ? 'empty-line' : ''} ${isComplianceScore ? 'compliance-score-line' : ''} ${isViewReport ? 'view-report-line' : ''}`}>
-                            {isFileDetail ? (
-                              <span>{line}</span>
-                            ) : isProgress ? (
-                              <div className="progress-line-container">
-                                <span className="progress-text">{line}</span>
-                                <div className="progress-bar-wrapper">
-                                  <div className="progress-bar" style={{ width: `${msg.progressPercentage || 0}%` }}></div>
-                                </div>
-            </div>
-                            ) : isComplianceScore ? (() => {
-                              // Extract score from line or use msg.complianceScore
-                              const trimmedLine = line.trim();
-                              const scoreText = trimmedLine.replace('Compliance Score: ', '').replace('%', '').trim();
-                              const score = msg.complianceScore != null ? msg.complianceScore : (scoreText ? parseInt(scoreText, 10) : null);
-                              const scoreClass = score != null && !isNaN(score) ? getScoreIndicatorClass(score) : '';
-                              return (
-                                <span className={`compliance-score-display ${scoreClass}`}>
-                                  {scoreClass && <span className={`score-indicator ${scoreClass}`} />}
-                                  <span className="compliance-score-text">{trimmedLine}</span>
-                                </span>
-                              );
-                            })(                            ) : isViewReport ? (
-                <button 
-                                className="view-report-link-inline"
-                  onClick={() => {
-                                  const path = msg.viewReportPath || (disclosureId ? `/validation/${disclosureId}` : '/validation');
-                                  navigate(path);
-                                }}
-                              >
-                                {trimmedLine}
-                              </button>
-                            ) : hasDone ? (
-                              <span>
-                                {line.split('DONE').map((part, partIdx, arr) => (
-                                  <span key={partIdx}>
-                                    {part}
-                                    {partIdx < arr.length - 1 && <span className="done-text">DONE</span>}
-                                  </span>
-                                ))}
-                              </span>
-                            ) : (
-                              <span>{line}</span>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <p>{msg.content}</p>
-                  )}
-                </div>
-                {msg.type === 'user' && <div className="message-avatar user-avatar">You</div>}
-              </div>
-            ))}
-            <div className="action-buttons-container">
-              <button className="action-button upload-another-button" onClick={handleUploadAnotherPDF}>
-                Upload Another PDF
-                </button>
-            </div>
-          </>
-        )}
-        </div>
+      </div>
     </div>
   );
 }
