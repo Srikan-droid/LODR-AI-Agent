@@ -233,6 +233,38 @@
   font-weight: 500;
 }
 
+.portal-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #e6eef4;
+  padding: 4px;
+  border-radius: 999px;
+  margin-top: 6px;
+}
+
+.portal-option {
+  border: none;
+  background: transparent;
+  color: #4a5b68;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.portal-option.active {
+  background: #1e5f8b;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(30, 95, 139, 0.25);
+}
+
+.portal-option:not(.active):hover {
+  color: #1e5f8b;
+}
+
 .header-right {
   display: flex;
   align-items: center;

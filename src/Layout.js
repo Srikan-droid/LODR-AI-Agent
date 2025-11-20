@@ -24,6 +24,7 @@ function Layout({ children, onLogout }) {
     }
     return 'dashboard';
   });
+  const [portalMode, setPortalMode] = useState('Enterprise');
 
   const handleMenuClick = (menuItem, path) => {
     setActiveMenu(menuItem);
@@ -143,7 +144,24 @@ function Layout({ children, onLogout }) {
           <div className="header-left">
             <div className="header-logo-text">
               <div className="header-logo-main">LODR AI Agent</div>
-              <div className="header-logo-sub">Enterprise</div>
+              <div className="portal-toggle" role="group" aria-label="Portal mode selector">
+                <button
+                  type="button"
+                  className={`portal-option ${portalMode === 'Enterprise' ? 'active' : ''}`}
+                  aria-pressed={portalMode === 'Enterprise'}
+                  onClick={() => setPortalMode('Enterprise')}
+                >
+                  Enterprise
+                </button>
+                <button
+                  type="button"
+                  className={`portal-option ${portalMode === 'Regulator' ? 'active' : ''}`}
+                  aria-pressed={portalMode === 'Regulator'}
+                  onClick={() => setPortalMode('Regulator')}
+                >
+                  Regulator
+                </button>
+              </div>
             </div>
           </div>
           <div className="header-right">
