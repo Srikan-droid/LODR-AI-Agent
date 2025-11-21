@@ -32,9 +32,26 @@
 }
 
 .entity-isin {
-  font-size: 0.9rem;
-  color: #64748b;
-  font-weight: 500;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  line-height: 1.1;
+}
+
+.entity-isin-label {
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.entity-isin-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: 0.08em;
 }
 
 .entity-header-right {

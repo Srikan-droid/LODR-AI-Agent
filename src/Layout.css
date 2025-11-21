@@ -182,7 +182,7 @@
 /* Main Content Wrapper */
 .main-content-wrapper {
   flex: 1;
-  margin-left: 260px;
+  margin-left: 261px;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -190,14 +190,14 @@
 }
 
 .main-content-wrapper.sidebar-collapsed {
-  margin-left: 80px;
+  margin-left: 81px;
 }
 
 /* Top Header */
 .top-header {
   background: white;
   border-bottom: 1px solid #e0e0e0;
-  padding: 20.5px 32px;
+  padding: 25.5px 32px;
   display: flex;
   justify-content: space-between;
   align-items: center;

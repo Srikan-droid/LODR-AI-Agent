@@ -74,7 +74,10 @@ function EntityMaster() {
       <div className="entity-header">
         <div className="entity-header-left">
           <h1 className="entity-title">Entity View: ZOMATO LTD.</h1>
-          <span className="entity-isin">ISIN INE758T01015</span>
+          <div className="entity-isin">
+            <span className="entity-isin-label">ISIN</span>
+            <span className="entity-isin-value">INE758T01015</span>
+          </div>
         </div>
         <div className="entity-header-right">
           <div className="load-entity-section">
