@@ -197,7 +197,7 @@
   border-collapse: collapse;
   border: 1px solid #d1d5db;
   border-radius: 10px;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .validation-table thead {

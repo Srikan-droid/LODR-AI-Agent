@@ -244,6 +244,9 @@ function ValidationHistory() {
           <tbody>
             {currentPageData.map((item) => {
               const isClickable = item.fileStatus === 'Completed';
+              // Generate dummy data if missing
+              const displayTitle = item.announcementTitle || `Disclosure - ${item.fileName?.replace('.pdf', '') || 'Document'}`;
+              const displayDate = item.dateOfEvent || new Date().toISOString().split('T')[0];
               return (
                 <tr key={item.id}>
                   <td>
@@ -255,7 +258,7 @@ function ValidationHistory() {
                         }
                         disabled={!isClickable}
                       >
-                        {item.announcementTitle}
+                        {displayTitle}
                       </button>
                       <button
                         type="button"
@@ -267,7 +270,7 @@ function ValidationHistory() {
                       </button>
                     </div>
                   </td>
-                  <td>{formatDisplayDate(item.dateOfEvent)}</td>
+                  <td>{formatDisplayDate(displayDate)}</td>
                   <td>
                     {item.regulations.map((reg) => (
                       <span key={`${item.id}-${reg}`} className="regulation-tag">

@@ -299,8 +299,22 @@ function UploadDisclosure() {
   };
 
   const handleGetComplianceScore = () => {
+    if (!selectedFile) {
+      alert('Please upload a PDF file first');
+      return;
+    }
+    
     setIsInteractMode(false);
-    setShowFormFields(true);
+    setShowFormFields(false);
+    
+    // Generate dummy title and date
+    const dummyTitle = `Disclosure - ${selectedFile.name.replace('.pdf', '')}`;
+    const today = new Date();
+    const dummyDate = today.toISOString().split('T')[0];
+    
+    setAnnouncementTitle(dummyTitle);
+    setDateOfEvent(dummyDate);
+    
     setChatMessages((prev) => [
       ...prev,
       {
@@ -309,14 +323,22 @@ function UploadDisclosure() {
         timestamp: new Date(),
       },
     ]);
+    
+    // Directly trigger validation
+    setTimeout(() => {
+      handleRunValidationWithData(dummyTitle, dummyDate);
+    }, 100);
   };
 
-  const handleRunValidation = () => {
-    if (!announcementTitle.trim()) {
+  const handleRunValidationWithData = (titleOverride = null, dateOverride = null) => {
+    const finalTitle = titleOverride || announcementTitle.trim();
+    const finalDate = dateOverride || dateOfEvent;
+    
+    if (!finalTitle) {
       alert('Please enter an Announcement Title');
       return;
     }
-    if (!dateOfEvent.trim()) {
+    if (!finalDate) {
       alert('Please enter a Date of Event');
       return;
     }
@@ -331,8 +353,8 @@ function UploadDisclosure() {
     }
 
     const disclosureResult = addDisclosure({
-      announcementTitle: announcementTitle.trim(),
-      dateOfEvent,
+      announcementTitle: finalTitle,
+      dateOfEvent: finalDate,
       fileName: selectedFile.name,
     });
 
@@ -359,7 +381,7 @@ function UploadDisclosure() {
     const newProgressMessageId = `progress-${Date.now()}`;
     setProgressMessageId(newProgressMessageId);
     scoreSetRef.current = false; // Reset ref for new validation
-    const initialContent = `File: ${selectedFile.name}\nTitle: ${announcementTitle.trim()}\nEvent Date: ${formatDate(dateOfEvent)}\nProgress: 0%\n\n${progressSteps.map((s) => `    ${s.name}`).join('\n')}`;
+    const initialContent = `File: ${selectedFile.name}\nTitle: ${finalTitle}\nEvent Date: ${formatDate(finalDate)}\nProgress: 0%\n\n${progressSteps.map((s) => `    ${s.name}`).join('\n')}`;
     
     setChatMessages((prev) => [
       ...prev,
@@ -372,8 +394,8 @@ function UploadDisclosure() {
         progressSteps: progressSteps.map((step) => ({ ...step, status: 'pending' })),
         fileInfo: {
           fileName: selectedFile.name,
-          title: announcementTitle.trim(),
-          eventDate: dateOfEvent,
+          title: finalTitle,
+          eventDate: finalDate,
         },
         progressPercentage: 0,
       },
@@ -532,6 +554,11 @@ function UploadDisclosure() {
         }, 800);
       }
     }, 1000);
+  };
+
+  // Wrapper function for form submission
+  const handleRunValidation = () => {
+    handleRunValidationWithData();
   };
 
   // Helper function to render a single chat message

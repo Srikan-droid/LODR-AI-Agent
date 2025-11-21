@@ -180,20 +180,26 @@
 }
 
 .entity-metric-card.metric-blue {
-  border-left-color: #2563eb;
+  border-left-color: #1d4ed8;
+  background: #1d4ed8;
+  color: #ffffff;
 }
 
 .entity-metric-card.metric-orange {
-  border-left-color: #f97316;
+  border-left-color: #ea580c;
+  background: #ea580c;
+  color: #ffffff;
 }
 
 .entity-metric-card.metric-red {
-  border-left-color: #ef4444;
+  border-left-color: #dc2626;
+  background: #dc2626;
+  color: #ffffff;
 }
 
 .metric-label {
   font-size: 0.85rem;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.85);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -203,7 +209,7 @@
 .metric-value-large {
   font-size: 2.5rem;
   font-weight: 700;
-  color: #0f172a;
+  color: #ffffff;
   margin-bottom: 8px;
   line-height: 1;
 }
@@ -216,12 +222,12 @@
   align-items: center;
   gap: 4px;
   font-size: 0.9rem;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.85);
   font-weight: 500;
 }
 
 .metric-change svg {
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 /* Main Content Layout */

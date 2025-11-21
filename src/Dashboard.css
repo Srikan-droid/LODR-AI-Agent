@@ -34,6 +34,10 @@
   margin: 0 0 20px 0;
 }
 
+.entity-overview-section .section-title {
+  margin-bottom: 28px;
+}
+
 .latest-disclosures-section .section-title {
   color: #1e5f8b;
 }
@@ -56,7 +60,7 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   border-left: 4px solid;
   transition: all 0.3s ease;
-  color: white;
+  color: #ffffff !important;
 }
 
 .metric-card:hover {
@@ -98,16 +102,25 @@
   font-weight: 700;
   line-height: 1;
   margin-bottom: 8px;
+  color: #ffffff !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
 }
 
 .metric-card .metric-value {
-  color: white;
+  color: #ffffff !important;
 }
 
 .metric-label {
   font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.85);
-  font-weight: 500;
+  color: #ffffff !important;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.metric-card .metric-label {
+  color: #ffffff !important;
 }
 
 .quick-upload-container {

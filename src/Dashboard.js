@@ -107,6 +107,9 @@ function Dashboard() {
               {latestDisclosures.map((item) => {
                 const showScore = item.fileStatus === 'Completed' && item.complianceScore != null;
                 const isClickable = item.fileStatus === 'Completed';
+                // Generate dummy data if missing
+                const displayTitle = item.announcementTitle || `Disclosure - ${item.fileName?.replace('.pdf', '') || 'Document'}`;
+                const displayDate = item.dateOfEvent || new Date().toISOString().split('T')[0];
                 return (
                   <tr key={item.id}>
                     <td>
@@ -115,10 +118,10 @@ function Dashboard() {
                         onClick={() => isClickable && navigate(`/validation/${item.id}`, { state: { from: 'dashboard' } })}
                         disabled={!isClickable}
                       >
-                        {item.announcementTitle}
+                        {displayTitle}
                       </button>
                     </td>
-                    <td>{formatDisplayDate(item.dateOfEvent)}</td>
+                    <td>{formatDisplayDate(displayDate)}</td>
                     <td>
                       {item.regulations.map((reg) => (
                         <span key={reg} className="regulation-tag">
