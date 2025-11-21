@@ -351,6 +351,7 @@ const priorityQueue = [
 ];
 
 function RegulatorDashboard() {
+  const navigate = useNavigate();
   const [showFullQueue, setShowFullQueue] = useState(false);
   const extraCount = Math.max(priorityQueue.length - 3, 0);
   const visibleQueue = showFullQueue ? priorityQueue : priorityQueue.slice(0, 3);
@@ -497,7 +498,7 @@ function RegulatorDashboard() {
                   <td className="priority-reason">{row.reason}</td>
                   <td>{row.received}</td>
                   <td>
-                    <button className="review-link">Review</button>
+                    <button className="review-link" onClick={() => navigate('/regulator/review')}>Review</button>
                   </td>
                 </tr>
               ))}

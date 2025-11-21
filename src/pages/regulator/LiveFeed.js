@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './LiveFeed.css';
 
 const scoreFilters = [
@@ -133,6 +134,7 @@ const getScoreClass = (score) => {
 };
 
 function RegulatorLiveFeed() {
+  const navigate = useNavigate();
   const [scoreFilter, setScoreFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('All Announcement Types');
   const [sectorFilter, setSectorFilter] = useState('All Sectors');
@@ -271,6 +273,11 @@ function RegulatorLiveFeed() {
                   <button
                     type="button"
                     className={`review-btn ${item.action === 'Details' ? 'secondary' : ''}`}
+                    onClick={() => {
+                      if (item.action === 'Review') {
+                        navigate('/regulator/review');
+                      }
+                    }}
                   >
                     {item.action}
                   </button>
