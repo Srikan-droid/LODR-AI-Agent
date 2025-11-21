@@ -233,42 +233,16 @@
   font-weight: 500;
 }
 
-.portal-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: #e6eef4;
-  padding: 4px;
-  border-radius: 999px;
-  margin-top: 6px;
-}
-
-.portal-option {
-  border: none;
-  background: transparent;
-  color: #4a5b68;
-  font-size: 0.8rem;
-  font-weight: 600;
-  padding: 4px 12px;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.portal-option.active {
-  background: #1e5f8b;
-  color: #fff;
-  box-shadow: 0 2px 6px rgba(30, 95, 139, 0.25);
-}
-
-.portal-option:not(.active):hover {
-  color: #1e5f8b;
-}
-
 .header-right {
   display: flex;
   align-items: center;
   gap: 16px;
+}
+
+.utility-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .header-button {
@@ -291,22 +265,64 @@
   color: #1e5f8b;
 }
 
-.user-profile {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 20px;
-  background: #f5f5f5;
-  border-radius: 24px;
-  color: #333;
-  font-size: 1rem;
-  font-weight: 600;
-  min-width: 120px;
-  justify-content: center;
+.user-profile-wrapper {
+  position: relative;
 }
 
-.user-profile svg {
+.user-profile-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f5f5f5;
+  border: none;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #333;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.user-profile-button svg {
   color: #1e5f8b;
+}
+
+.user-profile-button:hover {
+  background: #e8e8e8;
+}
+
+.user-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  padding: 8px 0;
+  min-width: 220px;
+  z-index: 20;
+}
+
+.user-dropdown-item {
+  width: 100%;
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  font-size: 0.9rem;
+  color: #333;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.user-dropdown-item:hover {
+  background: #f5f5f5;
+}
+
+.desktop-logout {
+  margin-left: 4px;
 }
 
 /* Page Content */

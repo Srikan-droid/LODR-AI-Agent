@@ -9,6 +9,9 @@ import ValidationHistory from './ValidationHistory';
 import DisclosureDetailsPage from './pages/DisclosureDetailsPage';
 import Feedback from './Feedback';
 import { DisclosuresProvider } from './context/DisclosuresContext';
+import RegulatorLiveFeed from './pages/regulator/LiveFeed';
+import RegulatorReview from './pages/regulator/Review';
+import EntityMaster from './pages/regulator/EntityMaster';
 
 // Sample SEBI Regulations Data - Updated links
 const regulationsData = [
@@ -896,6 +899,42 @@ function App() {
               <Login onLogin={handleLogin} />
             )
           } 
+        />
+        <Route
+          path="/regulator/live-feed"
+          element={
+            isAuthenticated ? (
+              <Layout onLogout={handleLogout}>
+                <RegulatorLiveFeed />
+              </Layout>
+            ) : (
+              <Login onLogin={handleLogin} />
+            )
+          }
+        />
+        <Route
+          path="/regulator/review"
+          element={
+            isAuthenticated ? (
+              <Layout onLogout={handleLogout}>
+                <RegulatorReview />
+              </Layout>
+            ) : (
+              <Login onLogin={handleLogin} />
+            )
+          }
+        />
+        <Route
+          path="/regulator/entity-master"
+          element={
+            isAuthenticated ? (
+              <Layout onLogout={handleLogout}>
+                <EntityMaster />
+              </Layout>
+            ) : (
+              <Login onLogin={handleLogin} />
+            )
+          }
         />
         <Route 
           path="/regulation/:regulationId" 
