@@ -15,7 +15,8 @@ function DisclosureDetailsModal({ disclosure, onClose }) {
       return ruleResults;
     }
     if (complianceScore != null) {
-      return generateRuleResults(complianceScore);
+      const { ruleResults: generatedRules } = generateRuleResults(complianceScore);
+      return generatedRules;
     }
     return [];
   }, [disclosure]);

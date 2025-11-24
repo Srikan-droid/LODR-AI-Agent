@@ -10,11 +10,27 @@ const DisclosuresContext = createContext();
 const decorateEntry = (entry) => {
   if (entry.fileStatus === 'Completed' && entry.complianceScore != null) {
     const hasRules = Array.isArray(entry.ruleResults) && entry.ruleResults.length > 0;
-    const rules = hasRules ? entry.ruleResults : generateRuleResults(entry.complianceScore);
-    return {
-      ...entry,
-      ruleResults: normalizeRuleResults(rules),
-    };
+    if (hasRules) {
+      // Recalculate score based on existing rules to ensure consistency
+      const passCount = entry.ruleResults.filter(r => r.status === 'Pass').length;
+      const totalCount = entry.ruleResults.length;
+      const recalculatedScore = totalCount > 0 ? Math.round((passCount / totalCount) * 100) : entry.complianceScore;
+      return {
+        ...entry,
+        complianceScore: recalculatedScore,
+        complianceStatus: getComplianceStatus(recalculatedScore),
+        ruleResults: normalizeRuleResults(entry.ruleResults),
+      };
+    } else {
+      // Generate new rules and calculate score
+      const { ruleResults, calculatedScore } = generateRuleResults();
+      return {
+        ...entry,
+        complianceScore: calculatedScore,
+        complianceStatus: getComplianceStatus(calculatedScore),
+        ruleResults: normalizeRuleResults(ruleResults),
+      };
+    }
   }
 
   return {
@@ -40,8 +56,6 @@ const getRandomRegulations = () => {
   const shuffled = [...REGULATION_OPTIONS].sort(() => 0.5 - Math.random());
   return shuffled.slice(0, count);
 };
-
-const getRandomComplianceScore = () => Math.floor(Math.random() * 51) + 45; // 45 - 95
 
 const getComplianceStatus = (score) => {
   if (score >= 80) return 'Compliant';
@@ -81,14 +95,15 @@ export const DisclosuresProvider = ({ children }) => {
       ruleResults: [],
     };
 
-    // Update status immediately (no delay)
-    const complianceScore = getRandomComplianceScore();
+    // Generate rule results first, then calculate score based on pass/fail ratio
+    const { ruleResults, calculatedScore } = generateRuleResults();
+    const complianceScore = calculatedScore;
     const completedEntry = {
       ...newEntry,
       fileStatus: 'Completed',
       complianceScore,
       complianceStatus: getComplianceStatus(complianceScore),
-      ruleResults: generateRuleResults(complianceScore),
+      ruleResults,
     };
 
     setDisclosures((prev) => [completedEntry, ...prev]);
