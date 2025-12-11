@@ -47,9 +47,9 @@ function Login({ onLogin }) {
         </div>
 
         <div className="welcome-section">
-          <h1 className="welcome-title">Welcome to LODR AI Agent</h1>
+          <h1 className="welcome-title">IRIS RegAI</h1>
           <p className="service-description">
-            AI based automated compliance monitoring
+            Smart, Regulatory AI engine for continuous monitoring and early warning system on violations.
           </p>
         </div>
 
