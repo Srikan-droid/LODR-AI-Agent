@@ -294,7 +294,8 @@ function Layout({ children, onLogout }) {
         <header className="top-header">
           <div className="header-left">
             <div className="header-logo-text">
-              <div className="header-logo-main">LODR AI Agent</div>
+              <div className="header-logo-main">IRIS RegAI</div>
+              <div className="header-logo-sub">Smart, Regulatory AI engine for continuous monitoring and early warning system on violations.</div>
             </div>
           </div>
           <div className="header-right">
