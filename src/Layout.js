@@ -295,7 +295,7 @@ function Layout({ children, onLogout }) {
           <div className="header-left">
             <div className="header-logo-text">
               <div className="header-logo-main">IRIS RegAI</div>
-              <div className="header-logo-sub">Smart, Regulatory AI engine for continuous monitoring and early warning system on violations.</div>
+              <div className="header-logo-sub">Smart, Regulatory AI engine for continuous monitoring and early warning system on non-compliance.</div>
             </div>
           </div>
           <div className="header-right">

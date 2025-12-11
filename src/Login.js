@@ -49,7 +49,7 @@ function Login({ onLogin }) {
         <div className="welcome-section">
           <h1 className="welcome-title">IRIS RegAI</h1>
           <p className="service-description">
-            Smart, Regulatory AI engine for continuous monitoring and early warning system on violations.
+            Smart, Regulatory AI engine for continuous monitoring and early warning system on non-compliance.
           </p>
         </div>
 
