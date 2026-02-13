@@ -1400,7 +1400,19 @@ function App() {
   return (
     <DisclosuresProvider>
       <RegulationsProvider initialRegulations={initialRegulationsData}>
-      <Router basename={process.env.PUBLIC_URL ? new URL(process.env.PUBLIC_URL).pathname : ''}>
+      <Router basename={(() => {
+        const url = process.env.PUBLIC_URL || '';
+        if (!url) return '';
+        try {
+          if (url.startsWith('http://') || url.startsWith('https://')) {
+            return new URL(url).pathname.replace(/\/$/, '') || '';
+          }
+          if (url.startsWith('/')) {
+            return url.replace(/\/$/, '') || '';
+          }
+        } catch (_) {}
+        return '';
+      })()}>
         <Routes>
         <Route 
           path="/" 
