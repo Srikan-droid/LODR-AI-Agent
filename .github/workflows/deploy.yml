@@ -32,23 +32,69 @@ jobs:
         with:
           node-version: '18'
 
+      - name: Check repository structure
+        run: |
+          echo "Current directory: $(pwd)"
+          echo "Contents:"
+          ls -la
+          if [ -f "package.json" ]; then
+            echo "package.json found in root - code is at root level"
+          elif [ -d "sebi-knowledge-base" ] && [ -f "sebi-knowledge-base/package.json" ]; then
+            echo "sebi-knowledge-base directory found"
+          else
+            echo "Checking for package.json in subdirectories..."
+            find . -name "package.json" -type f | head -5
+          fi
+
       - name: Install dependencies
-        working-directory: ./sebi-knowledge-base
-        run: npm ci
+        run: |
+          if [ -f "package.json" ]; then
+            echo "Installing from root directory"
+            npm ci
+          elif [ -d "sebi-knowledge-base" ] && [ -f "sebi-knowledge-base/package.json" ]; then
+            echo "Installing from sebi-knowledge-base directory"
+            cd sebi-knowledge-base
+            npm ci
+          else
+            echo "Error: Could not find package.json"
+            exit 1
+          fi
 
       - name: Build
-        working-directory: ./sebi-knowledge-base
-        run: npm run build
+        run: |
+          if [ -f "package.json" ]; then
+            echo "Building from root directory"
+            npm run build
+          elif [ -d "sebi-knowledge-base" ] && [ -f "sebi-knowledge-base/package.json" ]; then
+            echo "Building from sebi-knowledge-base directory"
+            cd sebi-knowledge-base
+            npm run build
+          else
+            echo "Error: Could not find package.json"
+            exit 1
+          fi
         env:
           CI: false
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
+      - name: Determine build path
+        id: build_path
+        run: |
+          if [ -d "build" ]; then
+            echo "path=./build" >> $GITHUB_OUTPUT
+          elif [ -d "sebi-knowledge-base/build" ]; then
+            echo "path=./sebi-knowledge-base/build" >> $GITHUB_OUTPUT
+          else
+            echo "Error: Build directory not found"
+            exit 1
+          fi
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './sebi-knowledge-base/build'
+          path: ${{ steps.build_path.outputs.path }}
 
       - name: Deploy to GitHub Pages
         id: deployment
