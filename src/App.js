@@ -1403,14 +1403,18 @@ function App() {
       <Router basename={(() => {
         const url = process.env.PUBLIC_URL || '';
         if (!url) return '';
-        try {
-          if (url.startsWith('http://') || url.startsWith('https://')) {
-            return new URL(url).pathname.replace(/\/$/, '') || '';
+        // Extract pathname from full URL without using URL constructor
+        if (url.startsWith('http://') || url.startsWith('https://')) {
+          const match = url.match(/https?:\/\/[^\/]+(\/.*)?$/);
+          if (match && match[1]) {
+            return match[1].replace(/\/$/, '') || '';
           }
-          if (url.startsWith('/')) {
-            return url.replace(/\/$/, '') || '';
-          }
-        } catch (_) {}
+          return '';
+        }
+        // If it's already a path, use it directly
+        if (url.startsWith('/')) {
+          return url.replace(/\/$/, '') || '';
+        }
         return '';
       })()}>
         <Routes>
