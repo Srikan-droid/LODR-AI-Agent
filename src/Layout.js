@@ -260,7 +260,7 @@ function Layout({ children, onLogout }) {
       <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-header">
           <div className="logo-container">
-            <img src="/iris logo.png" alt="iRIS Logo" className="sidebar-logo-image" />
+            <img src={`${process.env.PUBLIC_URL || ''}/iris logo.png`} alt="IRIS Logo" className="sidebar-logo-image" />
           </div>
           <button className="sidebar-toggle" onClick={toggleSidebar}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

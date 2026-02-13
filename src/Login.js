@@ -42,7 +42,7 @@ function Login({ onLogin }) {
       <div className="login-card">
         <div className="logo-section">
           <div className="iris-logo">
-            <img src="/iris logo.png" alt="iRIS Logo" className="logo-image" />
+            <img src={`${process.env.PUBLIC_URL || ''}/iris logo.png`} alt="IRIS Logo" className="logo-image" />
           </div>
         </div>
 
