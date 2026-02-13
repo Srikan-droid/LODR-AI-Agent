@@ -1400,7 +1400,7 @@ function App() {
   return (
     <DisclosuresProvider>
       <RegulationsProvider initialRegulations={initialRegulationsData}>
-      <Router>
+      <Router basename={process.env.PUBLIC_URL ? new URL(process.env.PUBLIC_URL).pathname : ''}>
         <Routes>
         <Route 
           path="/" 
