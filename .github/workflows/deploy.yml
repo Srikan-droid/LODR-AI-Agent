@@ -30,7 +30,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
 
       - name: Check repository structure
         run: |
@@ -50,11 +50,21 @@ jobs:
         run: |
           if [ -f "package.json" ]; then
             echo "Installing from root directory"
-            npm ci
+            if [ -f "package-lock.json" ]; then
+              npm ci || npm install
+            else
+              echo "package-lock.json not found, running npm install"
+              npm install
+            fi
           elif [ -d "sebi-knowledge-base" ] && [ -f "sebi-knowledge-base/package.json" ]; then
             echo "Installing from sebi-knowledge-base directory"
             cd sebi-knowledge-base
-            npm ci
+            if [ -f "package-lock.json" ]; then
+              npm ci || npm install
+            else
+              echo "package-lock.json not found, running npm install"
+              npm install
+            fi
           else
             echo "Error: Could not find package.json"
             exit 1
