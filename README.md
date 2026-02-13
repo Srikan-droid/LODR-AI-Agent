@@ -1,70 +1,150 @@
-# Getting Started with Create React App
+# RegAI - Regulatory Knowledge Center
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A comprehensive knowledge management system for regulatory compliance, featuring an interactive chatbot interface for managing regulations, events, and obligations.
+
+## Features
+
+- **Regulation Management**: Browse and manage regulatory documents (e.g., SEBI LODR)
+- **Event Tracking**: Track and manage regulatory events and obligations
+- **Interactive Chatbot**: AI-powered chatbot for adding regulations and querying domain information
+- **Obligations Table**: Comprehensive table with validation rules, severity levels, and scoring
+- **Mindmap Visualization**: Visual representation of regulatory relationships
+- **Domain Summary**: Automated domain analysis and summary generation
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v18 or higher)
+- npm or yarn
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/YOUR_USERNAME/RegAI.git
+cd RegAI/sebi-knowledge-base
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Start the development server:
+```bash
+npm start
+```
+
+The app will open at [http://localhost:3000](http://localhost:3000)
 
 ## Available Scripts
 
-In the project directory, you can run:
+- `npm start` - Runs the app in development mode
+- `npm run build` - Builds the app for production
+- `npm test` - Launches the test runner
+- `npm run deploy` - Deploys the app to GitHub Pages (requires gh-pages package)
 
-### `npm start`
+## Deployment to GitHub Pages
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### Option 1: Automatic Deployment via GitHub Actions (Recommended)
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+This repository includes a GitHub Actions workflow that automatically deploys your app to GitHub Pages whenever you push to the `main` or `master` branch.
 
-### `npm test`
+#### Setup Steps:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+1. **Update the homepage in package.json**:
+   - Open `package.json`
+   - Replace `YOUR_USERNAME` in the `homepage` field with your GitHub username:
+   ```json
+   "homepage": "https://YOUR_USERNAME.github.io/RegAI"
+   ```
 
-### `npm run build`
+2. **Enable GitHub Pages**:
+   - Go to your repository on GitHub
+   - Navigate to **Settings** → **Pages**
+   - Under **Source**, select **GitHub Actions**
+   - Save the changes
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+3. **Push your code**:
+   ```bash
+   git add .
+   git commit -m "Setup GitHub Pages deployment"
+   git push origin main
+   ```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+4. **Monitor deployment**:
+   - Go to the **Actions** tab in your GitHub repository
+   - Watch the workflow run and complete
+   - Once complete, your site will be available at `https://YOUR_USERNAME.github.io/RegAI`
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Option 2: Manual Deployment
 
-### `npm run eject`
+1. **Install gh-pages**:
+   ```bash
+   npm install --save-dev gh-pages
+   ```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+2. **Update package.json**:
+   - Ensure the `homepage` field is set correctly (see Option 1, Step 1)
+   - The `deploy` script is already configured
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+3. **Build and deploy**:
+   ```bash
+   npm run deploy
+   ```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+   This will:
+   - Build your app for production
+   - Deploy it to the `gh-pages` branch
+   - Make it available on GitHub Pages
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### Important Notes for GitHub Pages
 
-## Learn More
+- **Routing**: The app uses React Router with BrowserRouter. The included `404.html` file handles client-side routing for GitHub Pages.
+- **Base Path**: If your repository is not at the root (e.g., `username.github.io/repo-name`), you may need to configure a basename in your Router component.
+- **Build Folder**: The `build` folder is gitignored by default. The GitHub Actions workflow handles building and deploying automatically.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Project Structure
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```
+sebi-knowledge-base/
+├── public/
+│   ├── index.html          # Main HTML template
+│   └── 404.html            # GitHub Pages routing support
+├── src/
+│   ├── components/         # React components
+│   │   └── AddRegulationChatbot.js
+│   ├── context/            # React Context providers
+│   │   └── RegulationsContext.js
+│   ├── pages/              # Page components
+│   ├── App.js              # Main app component
+│   └── index.js            # Entry point
+├── .github/
+│   └── workflows/
+│       └── deploy.yml      # GitHub Actions deployment workflow
+└── package.json
+```
 
-### Code Splitting
+## Technologies Used
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+- **React** - UI library
+- **React Router DOM** - Client-side routing
+- **React Context API** - State management
+- **CSS3** - Styling and animations
 
-### Analyzing the Bundle Size
+## Contributing
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-### Making a Progressive Web App
+## License
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+This project is private and proprietary.
 
-### Advanced Configuration
+## Support
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+For issues and questions, please open an issue in the GitHub repository.

@@ -9,12 +9,14 @@ import ValidationHistory from './ValidationHistory';
 import DisclosureDetailsPage from './pages/DisclosureDetailsPage';
 import Feedback from './Feedback';
 import { DisclosuresProvider } from './context/DisclosuresContext';
+import { RegulationsProvider, useRegulations } from './context/RegulationsContext';
 import RegulatorLiveFeed from './pages/regulator/LiveFeed';
 import RegulatorReview from './pages/regulator/Review';
 import EntityMaster from './pages/regulator/EntityMaster';
+import AddRegulationChatbot from './components/AddRegulationChatbot';
 
-// Sample SEBI Regulations Data - Updated links
-const regulationsData = [
+// Initial SEBI Regulations Data - Updated links
+const initialRegulationsData = [
   {
     id: 1,
     title: 'Securities and Exchange Board of India (Listing Obligations and Disclosure Requirements) Regulations, 2015 [Last amended on September 08, 2025]',
@@ -325,6 +327,7 @@ function MainContent({ onLogout }) {
   const navigate = useNavigate();
   const { regulationId, eventId } = useParams();
   const [searchParams] = useSearchParams();
+  const { regulations: regulationsData, removeRegulation, removeEvent, updateEventRegulations, updateRegulation } = useRegulations();
   
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
   const [showDirectory, setShowDirectory] = useState(!!regulationId || searchParams.get('view') === 'directory');
@@ -333,6 +336,148 @@ function MainContent({ onLogout }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalText, setModalText] = useState('');
+  const [eventDetailTab, setEventDetailTab] = useState('summary');
+  const [selectedRows, setSelectedRows] = useState(new Set());
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedRegulations, setEditedRegulations] = useState([]);
+  const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [editingDescriptionId, setEditingDescriptionId] = useState(null);
+  const [descriptionEditValue, setDescriptionEditValue] = useState('');
+
+  // Reset selection and editing when event changes
+  useEffect(() => {
+    setSelectedRows(new Set());
+    setIsEditing(false);
+    if (selectedEvent?.regulations) {
+      // Ensure all regulations have required fields with defaults
+      const normalizedRegulations = selectedEvent.regulations.map((r) => ({
+        ...r,
+        severity: r.severity || 'medium',
+        score: r.score !== undefined ? r.score : 3,
+        isSubmitted: r.isSubmitted !== undefined ? r.isSubmitted : false,
+      }));
+      setEditedRegulations(normalizedRegulations);
+    } else {
+      setEditedRegulations([]);
+    }
+  }, [selectedEvent?.id]);
+
+  // Sync editedRegulations when selectedEvent.regulations changes (only if not editing)
+  useEffect(() => {
+    if (selectedEvent?.regulations && !isEditing) {
+      // Ensure all regulations have required fields with defaults
+      const normalizedRegulations = selectedEvent.regulations.map((r) => ({
+        ...r,
+        severity: r.severity || 'medium',
+        score: r.score !== undefined ? r.score : 3,
+        isSubmitted: r.isSubmitted !== undefined ? r.isSubmitted : false,
+      }));
+      setEditedRegulations(normalizedRegulations);
+    }
+  }, [selectedEvent?.regulations, isEditing]);
+
+  const handleRowSelect = (regId) => {
+    setSelectedRows((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(regId)) {
+        newSet.delete(regId);
+      } else {
+        newSet.add(regId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (!editedRegulations || editedRegulations.length === 0) return;
+    if (selectedRows.size === editedRegulations.length) {
+      setSelectedRows(new Set());
+    } else {
+      setSelectedRows(new Set(editedRegulations.map((r) => r.id)));
+    }
+  };
+
+  const handleEdit = () => {
+    if (selectedRows.size === 0) return;
+    setIsEditing(true);
+  };
+
+  const handleSave = () => {
+    if (!selectedRegulation || !selectedEvent) return;
+    updateEventRegulations(selectedRegulation.id, selectedEvent.id, editedRegulations);
+    setIsEditing(false);
+    setSelectedRows(new Set());
+  };
+
+  const handleDelete = () => {
+    if (selectedRows.size === 0) return;
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = () => {
+    if (!selectedRegulation || !selectedEvent) return;
+    const newRegulations = editedRegulations.filter((r) => !selectedRows.has(r.id));
+    updateEventRegulations(selectedRegulation.id, selectedEvent.id, newRegulations);
+    setEditedRegulations(newRegulations);
+    setSelectedRows(new Set());
+    setIsEditing(false);
+    setShowDeleteConfirm(false);
+  };
+
+  const handleAdd = () => {
+    if (!selectedEvent) return;
+    const newReg = {
+      id: Date.now() + Math.floor(Math.random() * 1000),
+      typeOfEntity: '',
+      regulation: '',
+      requirement: '',
+      text: '',
+      format: '',
+      validationCheck: '',
+      penalty: '',
+      source: '',
+      severity: 'medium',
+      score: 3,
+      isSubmitted: false,
+    };
+    setEditedRegulations([...editedRegulations, newReg]);
+    setSelectedRows(new Set([newReg.id]));
+    setIsEditing(true);
+  };
+
+  const handleSubmit = () => {
+    if (!selectedRegulation || !selectedEvent) return;
+    setShowSubmitConfirm(true);
+  };
+
+  const confirmSubmit = () => {
+    if (!selectedRegulation || !selectedEvent) return;
+    const updatedRegulations = editedRegulations.map((r) => ({ ...r, isSubmitted: true }));
+    updateEventRegulations(selectedRegulation.id, selectedEvent.id, updatedRegulations);
+    setEditedRegulations(updatedRegulations);
+    setShowSubmitConfirm(false);
+    setIsEditing(false);
+    setSelectedRows(new Set());
+  };
+
+  const handleRegulationFieldChange = (regId, field, value) => {
+    setEditedRegulations((prev) =>
+      prev.map((r) => (r.id === regId ? { ...r, [field]: value } : r))
+    );
+  };
+
+  // Check if event has unsubmitted data
+  const hasUnsubmittedData = (event) => {
+    if (!event.regulations || event.regulations.length === 0) return false;
+    return event.regulations.some((r) => !r.isSubmitted);
+  };
+
+  // Check if regulation has events with unsubmitted data
+  const hasUnsubmittedEvents = (regulation) => {
+    if (!regulation.events || regulation.events.length === 0) return false;
+    return regulation.events.some((e) => hasUnsubmittedData(e));
+  };
   
   // Load regulation and event from URL params
   useEffect(() => {
@@ -358,7 +503,7 @@ function MainContent({ onLogout }) {
       setSelectedEvent(null);
       setShowDirectory(searchParams.get('view') === 'directory');
     }
-  }, [regulationId, eventId, searchParams]);
+  }, [regulationId, eventId, searchParams, regulationsData]);
 
   // Filter regulations and events based on search query
   const filteredSearchResults = useMemo(() => {
@@ -397,7 +542,7 @@ function MainContent({ onLogout }) {
     });
     
     return results;
-  }, [searchQuery]);
+  }, [searchQuery, regulationsData]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -583,21 +728,50 @@ function MainContent({ onLogout }) {
             <div className="directory-view">
               <div className="directory-header">
                 <h2 className="directory-title">All Regulations</h2>
-                <button onClick={handleCloseDirectory} className="close-button">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                  </svg>
-                  Close
-                </button>
+                <div className="directory-header-actions">
+                  <button onClick={() => navigate('/rkb/add-regulation')} className="add-regulation-button">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Add Regulation
+                  </button>
+                  <button onClick={handleCloseDirectory} className="close-button">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                    Close
+                  </button>
+                </div>
               </div>
               <div className="directory-grid">
                 {regulationsData.map(regulation => (
                   <div 
                     key={regulation.id} 
-                    className="regulation-card"
+                    className={`regulation-card regulation-card-with-remove ${hasUnsubmittedEvents(regulation) ? 'regulation-card-unsubmitted' : ''}`}
                     onClick={() => handleRegulationClick(regulation)}
                   >
+                    <button
+                      className="regulation-card-remove"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (window.confirm('Are you sure you want to remove this regulation?')) {
+                          removeRegulation(regulation.id);
+                          if (selectedRegulation?.id === regulation.id) {
+                            navigate('/rkb?view=directory');
+                            setSelectedRegulation(null);
+                            setSelectedEvent(null);
+                          }
+                        }
+                      }}
+                      aria-label="Remove regulation"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                      </svg>
+                    </button>
                     <span className="category-badge">{regulation.category}</span>
                     <h3 className="card-title">{regulation.title}</h3>
                     <p className="card-description">{regulation.description}</p>
@@ -632,7 +806,64 @@ function MainContent({ onLogout }) {
                 {selectedRegulation.lastAmended && (
                   <span className="detail-date">Last Amended: {selectedRegulation.lastAmended}</span>
                 )}
-                <p className="detail-description">{selectedRegulation.description}</p>
+                <div className="detail-description-container">
+                  {editingDescriptionId === selectedRegulation.id ? (
+                    <div className="description-edit-container">
+                      <textarea
+                        className="description-edit-input"
+                        value={descriptionEditValue}
+                        onChange={(e) => setDescriptionEditValue(e.target.value)}
+                        rows={3}
+                      />
+                      <div className="description-edit-actions">
+                        <button
+                          className="description-save-button"
+                          onClick={() => {
+                            updateRegulation(selectedRegulation.id, { description: descriptionEditValue });
+                            setEditingDescriptionId(null);
+                            setDescriptionEditValue('');
+                          }}
+                        >
+                          Save
+                        </button>
+                        <button
+                          className="description-cancel-button"
+                          onClick={() => {
+                            setEditingDescriptionId(null);
+                            setDescriptionEditValue('');
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="description-display-container">
+                      <p className="detail-description">{selectedRegulation.description}</p>
+                      <button
+                        className="description-edit-icon"
+                        onClick={() => {
+                          setEditingDescriptionId(selectedRegulation.id);
+                          setDescriptionEditValue(selectedRegulation.description || '');
+                        }}
+                        aria-label="Edit description"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  )}
+                </div>
+                {(selectedRegulation.title.toLowerCase().includes('johannesburg') || selectedRegulation.title.toLowerCase().includes('jse')) && (
+                  <button
+                    className="regulation-view-mindmap-link"
+                    onClick={() => window.open('/navigator.png', '_blank')}
+                  >
+                    View Mindmap
+                  </button>
+                )}
                 
                 {!selectedEvent && selectedRegulation.events && selectedRegulation.events.length > 0 && (
                   <div className="detail-events">
@@ -641,10 +872,39 @@ function MainContent({ onLogout }) {
                       {selectedRegulation.events.map((event) => (
                         <div 
                           key={event.id} 
-                          className="event-card"
-                          onClick={() => event.regulations && handleEventClick(selectedRegulation, event)}
-                          style={{ cursor: event.regulations ? 'pointer' : 'default' }}
+                          className={`event-card event-card-with-remove ${hasUnsubmittedData(event) ? 'event-card-unsubmitted' : ''}`}
+                          onClick={() => (event.regulations?.length || event.summaryText || event.hasTabs) && handleEventClick(selectedRegulation, event)}
+                          style={{ cursor: (event.regulations?.length || event.summaryText || event.hasTabs) ? 'pointer' : 'default' }}
                         >
+                          <button
+                            className="event-card-remove"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (window.confirm('Are you sure you want to remove this event?')) {
+                                const eventsBeforeRemoval = selectedRegulation.events?.length || 0;
+                                removeEvent(selectedRegulation.id, event.id);
+                                
+                                // If this was the last event, the regulation will be removed automatically
+                                // Navigate to directory if viewing the removed event or if regulation was removed
+                                if (selectedEvent?.id === event.id) {
+                                  if (eventsBeforeRemoval === 1) {
+                                    // Last event, regulation will be removed
+                                    navigate('/rkb?view=directory');
+                                    setSelectedRegulation(null);
+                                  } else {
+                                    navigate(`/regulation/${selectedRegulation.id}`);
+                                  }
+                                  setSelectedEvent(null);
+                                }
+                              }
+                            }}
+                            aria-label="Remove event"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <line x1="18" y1="6" x2="6" y2="18"></line>
+                              <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                          </button>
                           <span className="event-category-badge">{event.category}</span>
                           <h4 className="event-name">{event.name}</h4>
                           <p className="event-description">{event.description}</p>
@@ -655,7 +915,7 @@ function MainContent({ onLogout }) {
                               ))}
                             </div>
                           )}
-                          {event.regulations && (
+                          {((event.regulations && event.regulations.length) || event.summaryText || event.hasTabs) && (
                             <span className="event-view-details">Click to view details →</span>
                           )}
                         </div>
@@ -664,7 +924,7 @@ function MainContent({ onLogout }) {
                   </div>
                 )}
                 
-                {selectedEvent && selectedEvent.regulations && (
+                {selectedEvent && (selectedEvent.regulations?.length || selectedEvent.hasTabs) && (
                   <div className="event-detail-view">
                     <button onClick={() => navigate(`/regulation/${selectedRegulation.id}`)} className="back-to-events-button">
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -674,9 +934,293 @@ function MainContent({ onLogout }) {
                       Back to Events
                     </button>
                     <div className="event-detail-header">
-                      <h3>{selectedEvent.name}</h3>
-                      <p className="event-detail-subtitle">{selectedEvent.description}</p>
+                      <div className="event-detail-header-content">
+                        <div>
+                          <h3>{selectedEvent.name}</h3>
+                          <p className="event-detail-subtitle">{selectedEvent.description}</p>
+                        </div>
+                      </div>
                     </div>
+                    {selectedEvent.hasTabs ? (
+                      <div className="event-tabs-container">
+                        <div className="event-tabs-header">
+                          <button
+                            type="button"
+                            className={`event-tab ${eventDetailTab === 'summary' ? 'event-tab-active' : ''}`}
+                            onClick={() => setEventDetailTab('summary')}
+                          >
+                            Summary
+                          </button>
+                          <button
+                            type="button"
+                            className={`event-tab ${eventDetailTab === 'obligations' ? 'event-tab-active' : ''}`}
+                            onClick={() => setEventDetailTab('obligations')}
+                          >
+                            Obligations
+                          </button>
+                        </div>
+                        <div className="event-tab-content">
+                          {eventDetailTab === 'summary' ? (
+                            <div className="event-summary-tab">
+                              <p className="event-summary-text">{selectedEvent.summaryText || 'No summary available.'}</p>
+                            </div>
+                          ) : editedRegulations && editedRegulations.length > 0 ? (
+                            <div className="obligations-table-container">
+                              <div className="obligations-table-scrollable">
+                                <div className="regulations-table">
+                                  <table>
+                                  <thead>
+                                    <tr>
+                                      <th className="checkbox-column">
+                                        <input
+                                          type="checkbox"
+                                          checked={selectedRows.size === editedRegulations.length && editedRegulations.length > 0}
+                                          onChange={handleSelectAll}
+                                          title="Select all"
+                                        />
+                                      </th>
+                                      <th>Regulation / Clause</th>
+                                      <th>Type of entity</th>
+                                      <th>Requirement</th>
+                                      <th>Summary Regulatory Text</th>
+                                      <th>Format / Details</th>
+                                      <th>Validation Rules</th>
+                                      <th>Severity</th>
+                                      <th>Score</th>
+                                      <th>Penalty/Action</th>
+                                      <th>Source</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {editedRegulations.map((reg) => {
+                                      const isSelected = selectedRows.has(reg.id);
+                                      const isUnsubmitted = !reg.isSubmitted;
+                                      const isRowEditable = isEditing && isSelected && selectedRows.size > 0;
+                                      return (
+                                        <tr key={reg.id} className={`${isSelected ? 'row-selected' : ''} ${isUnsubmitted ? 'row-unsubmitted' : ''}`}>
+                                          <td className="checkbox-column">
+                                            <input
+                                              type="checkbox"
+                                              checked={isSelected}
+                                              onChange={() => handleRowSelect(reg.id)}
+                                            />
+                                          </td>
+                                          <td>
+                                            {isRowEditable ? (
+                                              <input
+                                                type="text"
+                                                value={reg.regulation || ''}
+                                                onChange={(e) => handleRegulationFieldChange(reg.id, 'regulation', e.target.value)}
+                                                className="editable-input"
+                                              />
+                                            ) : (
+                                              reg.regulation || 'N/A'
+                                            )}
+                                          </td>
+                                          <td>
+                                            {isRowEditable ? (
+                                              <input
+                                                type="text"
+                                                value={reg.typeOfEntity || ''}
+                                                onChange={(e) => handleRegulationFieldChange(reg.id, 'typeOfEntity', e.target.value)}
+                                                className="editable-input"
+                                              />
+                                            ) : (
+                                              reg.typeOfEntity || 'N/A'
+                                            )}
+                                          </td>
+                                          <td>
+                                            {isRowEditable ? (
+                                              <input
+                                                type="text"
+                                                value={reg.requirement || ''}
+                                                onChange={(e) => handleRegulationFieldChange(reg.id, 'requirement', e.target.value)}
+                                                className="editable-input"
+                                              />
+                                            ) : (
+                                              reg.requirement
+                                            )}
+                                          </td>
+                                          <td>
+                                            {isRowEditable ? (
+                                              <textarea
+                                                value={reg.text || ''}
+                                                onChange={(e) => handleRegulationFieldChange(reg.id, 'text', e.target.value)}
+                                                className="editable-textarea"
+                                                rows={2}
+                                              />
+                                            ) : (
+                                              <TextCell
+                                                text={reg.text}
+                                                regulation={reg.regulation}
+                                                requirement={reg.requirement}
+                                                onReadMore={openTextModal}
+                                              />
+                                            )}
+                                          </td>
+                                          <td>
+                                            {isRowEditable ? (
+                                              <input
+                                                type="text"
+                                                value={reg.format || ''}
+                                                onChange={(e) => handleRegulationFieldChange(reg.id, 'format', e.target.value)}
+                                                className="editable-input"
+                                              />
+                                            ) : (
+                                              reg.format
+                                            )}
+                                          </td>
+                                          <td className="validation-check-cell">
+                                            {isRowEditable ? (
+                                              <textarea
+                                                value={reg.validationCheck || ''}
+                                                onChange={(e) => handleRegulationFieldChange(reg.id, 'validationCheck', e.target.value)}
+                                                className="editable-textarea"
+                                                rows={2}
+                                              />
+                                            ) : reg.validationCheck ? (
+                                              <div className="validation-check-content">
+                                                <ol className="validation-ol">
+                                                  {reg.validationCheck.split('\n').map((line, idx) => {
+                                                    const cleaned = line.replace(/^\s*\d+\.\s*/, '').trim();
+                                                    if (!cleaned) return null;
+                                                    return (
+                                                      <li key={idx} className="validation-line">
+                                                        {reg.ruleId && <span className="validation-rule-id">{reg.ruleId}</span>}
+                                                        <span className="validation-rule-text">{cleaned}</span>
+                                                      </li>
+                                                    );
+                                                  })}
+                                                </ol>
+                                              </div>
+                                            ) : (
+                                              <span className="no-validation">N/A</span>
+                                            )}
+                                          </td>
+                                          <td className="severity-cell">
+                                            {isRowEditable ? (
+                                              <select
+                                                value={reg.severity || 'medium'}
+                                                onChange={(e) => handleRegulationFieldChange(reg.id, 'severity', e.target.value)}
+                                                className="editable-select severity-select"
+                                              >
+                                                <option value="high">High</option>
+                                                <option value="medium">Medium</option>
+                                                <option value="low">Low</option>
+                                              </select>
+                                            ) : (
+                                              <span className={`severity-badge severity-${(reg.severity || 'medium').toLowerCase()}`}>
+                                                {(reg.severity || 'medium').charAt(0).toUpperCase() + (reg.severity || 'medium').slice(1)}
+                                              </span>
+                                            )}
+                                          </td>
+                                          <td className="score-cell">
+                                            {isRowEditable ? (
+                                              <input
+                                                type="number"
+                                                min="1"
+                                                max="5"
+                                                value={reg.score || 3}
+                                                onChange={(e) => handleRegulationFieldChange(reg.id, 'score', parseInt(e.target.value) || 1)}
+                                                className="editable-input score-input"
+                                              />
+                                            ) : (
+                                              <span className="score-badge">{reg.score || '-'}</span>
+                                            )}
+                                          </td>
+                                          <td className="penalty-cell">
+                                            {isRowEditable ? (
+                                              <textarea
+                                                value={reg.penalty || ''}
+                                                onChange={(e) => handleRegulationFieldChange(reg.id, 'penalty', e.target.value)}
+                                                className="editable-textarea"
+                                                rows={2}
+                                              />
+                                            ) : reg.penalty ? (
+                                              <div className="penalty-content">{reg.penalty}</div>
+                                            ) : (
+                                              <span className="no-penalty">N/A</span>
+                                            )}
+                                          </td>
+                                          <td className="source-cell">
+                                            {isRowEditable ? (
+                                              <input
+                                                type="text"
+                                                value={reg.source || ''}
+                                                onChange={(e) => handleRegulationFieldChange(reg.id, 'source', e.target.value)}
+                                                className="editable-input"
+                                              />
+                                            ) : reg.source ? (
+                                              <a href={reg.source.startsWith('http') ? reg.source : '#'} target={reg.source.startsWith('http') ? '_blank' : undefined} rel={reg.source.startsWith('http') ? 'noopener noreferrer' : undefined} className="source-link" onClick={!reg.source.startsWith('http') ? (e) => e.preventDefault() : undefined} title={reg.source}>View Source</a>
+                                            ) : (
+                                              <span className="source-text">N/A</span>
+                                            )}
+                                          </td>
+                                        </tr>
+                                      );
+                                    })}
+                                  </tbody>
+                                  </table>
+                                </div>
+                              </div>
+                              <div className="obligations-table-actions">
+                                <button
+                                  type="button"
+                                  className="obligations-action-button obligations-add-button"
+                                  onClick={handleAdd}
+                                >
+                                  Add
+                                </button>
+                                <button
+                                  type="button"
+                                  className="obligations-action-button obligations-edit-button"
+                                  onClick={handleEdit}
+                                  disabled={selectedRows.size === 0}
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  type="button"
+                                  className="obligations-action-button obligations-save-button"
+                                  onClick={handleSave}
+                                  disabled={!isEditing}
+                                >
+                                  Save
+                                </button>
+                                <button
+                                  type="button"
+                                  className="obligations-action-button obligations-delete-button"
+                                  onClick={handleDelete}
+                                  disabled={selectedRows.size === 0}
+                                >
+                                  Delete
+                                </button>
+                                <button
+                                  type="button"
+                                  className="obligations-action-button obligations-submit-button"
+                                  onClick={handleSubmit}
+                                >
+                                  Submit
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="obligations-table-container">
+                              <p className="event-no-obligations">No obligations yet.</p>
+                              <div className="obligations-table-actions">
+                                <button
+                                  type="button"
+                                  className="obligations-action-button obligations-add-button"
+                                  onClick={handleAdd}
+                                >
+                                  Add
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
                     <div className="regulations-table">
                       <table>
                         <thead>
@@ -762,6 +1306,7 @@ function MainContent({ onLogout }) {
                         </tbody>
                       </table>
                     </div>
+                    )}
                     {isModalOpen && (
                       <div className="modal-overlay" onClick={closeTextModal}>
                         <div className="modal" onClick={(e) => e.stopPropagation()}>
@@ -774,6 +1319,42 @@ function MainContent({ onLogout }) {
                           </div>
                           <div className="modal-footer">
                             <button className="modal-close-button" onClick={closeTextModal}>Close</button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    {/* Submit Confirmation Modal */}
+                    {showSubmitConfirm && (
+                      <div className="modal-overlay" onClick={() => setShowSubmitConfirm(false)}>
+                        <div className="modal" onClick={(e) => e.stopPropagation()}>
+                          <div className="modal-header">
+                            <h4 className="modal-title">Confirm Submit</h4>
+                            <button className="modal-close" onClick={() => setShowSubmitConfirm(false)} aria-label="Close">×</button>
+                          </div>
+                          <div className="modal-body">
+                            <p>Are you sure you want to submit all obligations? This action cannot be undone.</p>
+                          </div>
+                          <div className="modal-footer">
+                            <button className="modal-cancel-button" onClick={() => setShowSubmitConfirm(false)}>Cancel</button>
+                            <button className="modal-confirm-button" onClick={confirmSubmit}>Submit</button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    {/* Delete Confirmation Modal */}
+                    {showDeleteConfirm && (
+                      <div className="modal-overlay" onClick={() => setShowDeleteConfirm(false)}>
+                        <div className="modal" onClick={(e) => e.stopPropagation()}>
+                          <div className="modal-header">
+                            <h4 className="modal-title">Confirm Delete</h4>
+                            <button className="modal-close" onClick={() => setShowDeleteConfirm(false)} aria-label="Close">×</button>
+                          </div>
+                          <div className="modal-body">
+                            <p>Are you sure you want to delete {selectedRows.size} selected row(s)? This action cannot be undone.</p>
+                          </div>
+                          <div className="modal-footer">
+                            <button className="modal-cancel-button" onClick={() => setShowDeleteConfirm(false)}>Cancel</button>
+                            <button className="modal-confirm-button delete-confirm" onClick={confirmDelete}>Delete</button>
                           </div>
                         </div>
                       </div>
@@ -818,6 +1399,7 @@ function App() {
 
   return (
     <DisclosuresProvider>
+      <RegulationsProvider initialRegulations={initialRegulationsData}>
       <Router>
         <Routes>
         <Route 
@@ -882,6 +1464,18 @@ function App() {
             isAuthenticated ? (
               <Layout onLogout={handleLogout}>
                 <MainContent onLogout={handleLogout} />
+              </Layout>
+            ) : (
+              <Login onLogin={handleLogin} />
+            )
+          } 
+        />
+        <Route 
+          path="/rkb/add-regulation" 
+          element={
+            isAuthenticated ? (
+              <Layout onLogout={handleLogout}>
+                <AddRegulationChatbot />
               </Layout>
             ) : (
               <Login onLogin={handleLogin} />
@@ -962,6 +1556,7 @@ function App() {
         />
         </Routes>
       </Router>
+      </RegulationsProvider>
     </DisclosuresProvider>
   );
 }
