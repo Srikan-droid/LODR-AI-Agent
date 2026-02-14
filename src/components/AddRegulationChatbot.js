@@ -74,6 +74,8 @@ function AddRegulationChatbot() {
   const [progressMessageId, setProgressMessageId] = useState(null);
   const [showDomainSummaryPopup, setShowDomainSummaryPopup] = useState(false);
   const [domainSummaryInfo, setDomainSummaryInfo] = useState(null);
+  const [showRejectReason, setShowRejectReason] = useState(false);
+  const [rejectReasonText, setRejectReasonText] = useState('');
   const [creatingObligationsMessageId, setCreatingObligationsMessageId] = useState(null);
   const [showDomainInput, setShowDomainInput] = useState(false);
   const [isDomainPDFProcessing, setIsDomainPDFProcessing] = useState(false);
@@ -714,7 +716,24 @@ function AddRegulationChatbot() {
     }, 800);
   };
 
-  const handleDomainSummaryReject = () => {
+  const handleDomainSummaryRejectClick = () => {
+    setShowRejectReason(true);
+  };
+
+  const handleDomainSummaryRejectConfirm = () => {
+    const reason = rejectReasonText.trim();
+    if (!reason) return;
+    handleDomainSummaryReject(reason);
+    setRejectReasonText('');
+    setShowRejectReason(false);
+  };
+
+  const handleDomainSummaryRejectCancel = () => {
+    setShowRejectReason(false);
+    setRejectReasonText('');
+  };
+
+  const handleDomainSummaryReject = (reason) => {
     if (domainSummaryInfo) {
       // removeEvent will automatically remove the regulation if it has no events left
       removeEvent(domainSummaryInfo.regulationId, domainSummaryInfo.eventId);
@@ -736,7 +755,7 @@ function AddRegulationChatbot() {
       ...prev,
       {
         type: 'system',
-        content: 'Domain summary was rejected.',
+        content: reason ? `Domain summary was rejected. Reason: ${reason}` : 'Domain summary was rejected.',
         timestamp: new Date(),
         isRejectMessage: true,
       },
@@ -1377,19 +1396,48 @@ function AddRegulationChatbot() {
 
       {/* Domain Summary Popup */}
       {showDomainSummaryPopup && (
-        <div className="add-regulation-popup-overlay" onClick={() => { setShowDomainSummaryPopup(false); setDomainSummaryInfo(null); }}>
+        <div className="add-regulation-popup-overlay" onClick={() => { setShowDomainSummaryPopup(false); setDomainSummaryInfo(null); setShowRejectReason(false); setRejectReasonText(''); }}>
           <div className="add-regulation-popup" onClick={(e) => e.stopPropagation()}>
             <h3 className="add-regulation-popup-title">Domain Summary</h3>
             <div className="add-regulation-popup-body">
-              <p className="add-regulation-popup-summary">{DOMAIN_SUMMARY_TEXT}</p>
+              {!showRejectReason ? (
+                <>
+                  <p className="add-regulation-popup-summary">{DOMAIN_SUMMARY_TEXT}</p>
+                </>
+              ) : (
+                <div className="add-regulation-reject-reason-section">
+                  <label htmlFor="reject-reason" className="add-regulation-reject-reason-label">Reason for rejection (mandatory)</label>
+                  <textarea
+                    id="reject-reason"
+                    className="add-regulation-reject-reason-textarea"
+                    placeholder="Please provide a reason for rejecting the domain summary..."
+                    value={rejectReasonText}
+                    onChange={(e) => setRejectReasonText(e.target.value)}
+                    rows={4}
+                  />
+                </div>
+              )}
             </div>
             <div className="add-regulation-popup-actions">
-              <button type="button" className="add-regulation-popup-accept" onClick={handleDomainSummaryAccept}>
-                Accept
-              </button>
-              <button type="button" className="add-regulation-popup-reject" onClick={handleDomainSummaryReject}>
-                Reject
-              </button>
+              {!showRejectReason ? (
+                <>
+                  <button type="button" className="add-regulation-popup-accept" onClick={handleDomainSummaryAccept}>
+                    Accept
+                  </button>
+                  <button type="button" className="add-regulation-popup-reject" onClick={handleDomainSummaryRejectClick}>
+                    Reject
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button type="button" className="add-regulation-popup-cancel" onClick={handleDomainSummaryRejectCancel}>
+                    Cancel
+                  </button>
+                  <button type="button" className="add-regulation-popup-reject" onClick={handleDomainSummaryRejectConfirm} disabled={!rejectReasonText.trim()}>
+                    Confirm Reject
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
