@@ -624,18 +624,20 @@ function AddRegulationChatbot() {
   };
 
   const handleViewDomainSummary = (msg) => {
+    // Always show the popup so it works for all users (e.g. when hosted on GitHub with different state/cache)
     if (msg.domainSummaryDividendsInfo) {
-      // Include PDF information if available
       const domainInfo = {
         ...msg.domainSummaryDividendsInfo,
         hasPDFs: msg.hasPDFs || msg.domainSummaryDividendsInfo.hasPDFs,
         pdfFiles: msg.questionInfo?.pdfFiles || '',
       };
       setDomainSummaryInfo(domainInfo);
-      setShowDomainSummaryPopup(true);
     } else {
-      navigate('/rkb?view=directory');
+      setDomainSummaryInfo(null);
     }
+    setShowRejectReason(false);
+    setRejectReasonText('');
+    setShowDomainSummaryPopup(true);
   };
 
   const handleDomainSummaryAccept = () => {
